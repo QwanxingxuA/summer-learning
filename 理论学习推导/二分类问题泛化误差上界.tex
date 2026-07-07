@@ -1,0 +1,102 @@
+\documentclass{article}
+\author{QwanxingxuA}
+\title{二分类问题泛化误差上界}
+
+\usepackage{ctex}
+\usepackage{amsmath}
+
+\begin{document}
+\maketitle
+
+对于二分类任务，样本空间$T=\{(x_1,y_1),(x_2,y_2),\dots,(x_n,y_n)\}$，
+假设空间$\mathcal{F}=\{f_1,f_2,\dots,f_d\}$，假设d有限。
+
+损失函数采用0-1损失函数:
+\[L(y,f(x))\]
+
+泛化误差实质是风险误差：
+\[R(f)=E(L(Y,f(X)))\]
+
+经验误差：\[\widehat{R}(f)=\frac{\sum_{i=1}^{n}L(y_i,f(x_i))}{n}\] 
+
+泛化误差是在概率分布$P(X,Y)$下的。但是我们并不知道$P(X,Y)$，所以我们使用
+经验误差来寻找最优$f$。泛化误差无法精确衡量，但是可以退其次寻找上界。
+
+对于二分类任务、任意$f$，在至少$1-\delta$ 下，泛化误差$R(f)
+$有上界$\widehat{R}(f)+\varepsilon $。
+
+不急证明，先回顾概率论的几个结论。
+
+马尔可夫不等式：
+\[P(\left\lvert X \ge \varepsilon \right\rvert )\le \frac{E(\left\lvert X\right\rvert )}{\varepsilon }\]
+
+证明：使用可示函数$I_{\{X>\varepsilon \}}$很容易证明。
+
+马尔可夫推论：
+\[P(X \ge \varepsilon )\le \frac{E(e^{tX})}{e^{t\varepsilon }}\]
+
+引理：随机变量$X$满足$P(a\le X \le b)=1,E(X)=0$,则\[P(X\ge\varepsilon )
+\le e^{(-t\varepsilon +\frac{{(b-a)}^2t^2}{8})}\]
+
+
+证明：
+$e^{tx}$明显凸函数，有：
+\[E(e^{tX})\le E(\frac{b-x}{b-a} e^{ta}+\frac{x-a}{b-a}e^{tb})
+=E(\frac{b}{b-a}e^{ta}-\frac{a}{b-a}e^{tb})\]
+
+令$g(t)=\ln{(\frac{b}{b-a}e^{ta}-\frac{a}{b-a}e^{tb})},g(0)=0$
+
+\[g'(t)=\frac{ba(e^{ta}-e^{tb})}{be^{ta}-ae^{tb}},g'(0)=0\]
+
+\[g''(t)=ba\frac{(b-a)^2e^{ta+tb}}{(be^{ta}-ae^{tb})^2}\]
+
+由基本不等式：
+\[g''(t) \le \frac{(b-a)^2}{4}\]
+
+将$g(t)$在$t=0$处二阶泰勒展开:
+\[g(t)=g(0)+g'(0)t+\frac{g''(\epsilon )}{2}t^2 \le \frac{(b-a)^2t^2}{8}\]
+
+
+代回去证毕！
+
+霍夫丁不等式：
+对于相互独立的随机变量$X_1,X_2,\dots,X_n$满足$P(a_i \le X_i \le b_i)=1$,$\overline{X}=\sum_{i=1}^{n}X_i$ ,则
+\[P(X-E(\overline{X}) \ge \varepsilon ) \le e^{-\frac{2n\varepsilon ^2}{\sum_{i=1}^{n}(b_i-a_i)^2}}\]
+
+证明：
+显然：
+\[P(\frac{a_i-E(X_i)}{n})\le \frac{X_i-E(X_i)}{n}\le \frac{b_i-E(X_i)}{n})=1\]
+\[E(\frac{X_i-E(X_i)}{n})=0\]
+\[P(X-E(\overline{X}) \ge \varepsilon ) \le \frac{E(e^{t(X-E(\overline{X}))})}{e^{t\varepsilon }}\]
+
+\[e^{t(X-E(\overline{X}))}=e^{t\sum_{i=1}^{n}\frac{X_i-E(X_i)}{n}}\]
+
+到这里就可以带入引理了（求和与连乘在独立条件下相互转换，这里省略了）：
+
+\[P(X-E(\overline{X})\ge \varepsilon) \le e^{-t\varepsilon +\sum_{i=1}^{n}\frac{t^2(b_i-a_i)^2}{8n^2}}\]
+
+这个表达式是关于$t$的任意问题，右侧取关于$t$的二次函数最小值：
+
+\[P(X-E(\overline{X}\ge \varepsilon ))\le e^{-\frac{2n^2\varepsilon ^2}{\sum_{i=1}^{n}(b_i-a_i)^2}}\]
+
+
+至此准备工作完毕了!
+
+回到二分类任务，可以发现$R(f)=E(\widehat{R}(f))$
+
+注意这里的$X$关联的是损失函数$L(Y,f(X))$，它的取值0或者1，故而该问题的$a_i$均为0，$b_i$均为1.
+
+带入霍夫丁不等式：
+
+\[P(R(f)-\widehat{R}(f)\ge \varepsilon )\le e^{-\frac{2n^2\varepsilon ^2}{\sum_{i=1}^{n}(b_i-a_i)^2}}=e^{-2n\varepsilon ^2}\]
+
+令$\delta=e^{-2n\varepsilon ^2} $
+
+\[P(R(f) \le \widehat{R}(f)+\varepsilon )\ge 1-\delta \]
+
+故而在至少$1-\delta $概率下，找到了泛化误差的上界。
+
+总结下来，损失函数也好，泛化能力也好，它们的本质是我们为了
+找到最优$f$而确立的评价策略。重要的是，这个策略是从联合概率分布
+$P(X,Y)$或者条件概率分布$P(Y|X)$或$P(X|Y)$出发的，它们之间必然存在概率上的联系。
+\end{document}
