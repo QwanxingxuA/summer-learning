@@ -90,7 +90,15 @@ $e^{tx}$明显凸函数，有：
 
 \[P(R(f)-\widehat{R}(f)\ge \varepsilon )\le e^{-\frac{2n^2\varepsilon ^2}{\sum_{i=1}^{n}(b_i-a_i)^2}}=e^{-2n\varepsilon ^2}\]
 
-令$\delta=e^{-2n\varepsilon ^2} $
+故而：
+\[P(\exists f\in \mathcal{F} :R(f)-\widehat{R}(f)\ge \varepsilon )
+= P(\bigcup_{f\in \mathcal{F}}R(f)-\widehat{R}(f)\ge \varepsilon )
+\le de^{-2n\varepsilon ^2} \]
+令$\delta=de^{-2n\varepsilon ^2} $
+
+取反问题：
+
+对任意f，有：
 
 \[P(R(f) \le \widehat{R}(f)+\varepsilon )\ge 1-\delta \]
 
