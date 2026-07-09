@@ -1,0 +1,68 @@
+\documentclass{article}
+\usepackage{ctex}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\title{线性回归}
+\author{QwanxingxuA}
+
+
+\begin{document}
+\maketitle
+线性回归是很简单的模型，也是比较好实现的。李航老师详细介绍
+了线性回归的方法，但是策略层面对我这种初学者不友好，尤其是
+概率模型，以下说说我的思路。
+
+\section{模型}
+对于样本空间$D=\{(x_1,y_1),(x_2,y_2),\dots,(x_n,y_n)\}$,输入
+空间$\aleph\subseteq \mathbb{R}^m $,输出空间$\mathcal{Y}\subseteq \mathbb{R}$。基于对数据的初步观察
+，缩小假设空间到\[y=\boldsymbol{w}\cdot \boldsymbol{x}+b\]
+
+构建模型的本质就是基于对数据的初步观察缩小假设空间。
+
+\section{策略}
+策略是基于已经缩小的假设空间找到最优$f$，通过经验误差或者说损失
+误差来找到最优，同时尽量让风险误差或者泛化误差小。
+\subsection{直观非概率}
+从直观上分析经验误差就是预测值$\widehat{y}$与真实值$y$的
+距离。显然可以得到损失函数\[L(\boldsymbol{w})=\frac{1}{2n}\sum_{i=1}^{n}
+(y_i-\widehat{y_i})^2=\frac{1}{2n}\sum_{i=1}^{n}
+[y_i-(\boldsymbol{w}\cdot \boldsymbol{x_i}+b)]^2\]
+该损失函数优化求解就是线性最小二乘法，见最优化方法：
+
+这里说明一下$X^TX$半正定（这也是李航老师书中题目）：
+对任意非零向量$\boldsymbol{u}$有：
+\[\boldsymbol{u}^TX^TX\boldsymbol{u}=(X\boldsymbol{u})^TX\boldsymbol{u}\ge 0\]
+
+\subsection{正态分布概率}
+这是这一章不好理解的点。实际上，这种策略是假设条件概率密度$p(x,y)$服从正态
+分布。不好理解的关键是与直观距离相比，这里的目标是使得输入
+$x$的真实值靠近正态分布的最高点。
+\[E(y|\boldsymbol{x})=E(\boldsymbol{w}\cdot \boldsymbol{x}+b|\boldsymbol{x})
+=\boldsymbol{w}\cdot \boldsymbol{x}+b=\widehat{y}\]
+从均值来看，也可以说是优化参数使得输入$x$的预测值$\widehat{y}$
+在正态分布概率下靠近真实值$y$。
+
+最大似然估计是为了让观察到的数据出现可能性最大，这天然
+适配上述问题。代入此问题就是使真实数据处于均值，这样数据
+在真实值附近概率最大。
+
+取似然函数的负数，构成损失函数：
+\[L(\boldsymbol{w})=\frac{1}{2}\log(2\pi \sigma^2)+\frac{1}{2
+\sigma ^2}\sum_{i=1}^{n}[y_i-(\boldsymbol{w}\cdot \boldsymbol{x_i}+b)]^2)]\]
+损失函数是用来服务策略的，是个优化问题，可以忽视常数和一些常量，自然可以得到：
+\[L(\boldsymbol{w})=\frac{1}{2n}\sum_{i=1}^{n}
+[y_i-(\boldsymbol{w}\cdot \boldsymbol{x_i}+b)]^2\]
+这里回到最小二乘法了，李航老师的书就是这么写的，很容易使初学者如我一样忽略
+概率，凭借直观感受忽略了概率策略的思想。
+
+\section{结构风险误差}
+线性回归模型还有岭回归和Lasso，它们是两种正则化手段，也就是
+结构风险误差，实质上还是一种策略。
+
+但是两种损失函数对泛化误差产生了不同影响，这也印证了我在二分类任务
+泛化误差上界中说的损失函数与泛化误差存在着联系。
+
+总之，线性回归模型是很简单的模型，其中的概率策略实质上就是
+最大似然估计的思想。作者似乎记得哪个题目要求证明风险误差就是最大似然估计来着，
+现在的作者实力还不够，慢慢学习理解吧。
+\end{document}
