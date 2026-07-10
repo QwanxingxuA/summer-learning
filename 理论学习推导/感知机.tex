@@ -1,0 +1,49 @@
+\documentclass{article}
+
+\usepackage{amsbsy}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{ctex}
+\title{感知机}
+\author{QwanxingxuA}
+\begin{document}
+\maketitle
+\section{原始模型}
+感知机解决的是一个二分类任务，模型结构简单，不再赘述，直接给出模型定义。
+
+样本集 $D=\{(x_1,y_1),(x_2,y_2),\dots,(x_n,y_n)\}$，输入空间$\mathcal{X} \subseteq \mathbb R^m$，输出空间$\mathcal{Y} = \{+1,-1\}$。模型假设空间由超平面参数 $(\boldsymbol{w},\boldsymbol{b})$ 构成。具体数学表达：
+仿射判别函数：
+\[g(\boldsymbol{x})=\boldsymbol{w}\cdot\boldsymbol{x}+\boldsymbol{b}\]
+\[f(\boldsymbol{x})=\mathrm{sign}\big(g(\boldsymbol{x})\big)=
+\begin{cases}
+    +1,& g(\boldsymbol{x})\ge0\\
+    -1,& g(\boldsymbol{x})<0
+\end{cases}
+\]
+注意：模型假设空间的核心是超平面，而非线性函数 $g(\boldsymbol{x})=\boldsymbol{w}\cdot\boldsymbol{x}+\boldsymbol{b}$，这一点对后续经验误差分析至关重要。
+
+\section{经验误差、损失函数}
+记误分类样本集合为$\mathcal{M}$，$\|\boldsymbol{w}\|$ 表示权重向量 $\boldsymbol{w}$ 的L2范数。按照李航《统计学习方法》基于误分类样本几何距离的思路，可得到原始误差函数：
+\[L(\boldsymbol{w},\boldsymbol{b})=-\frac{1}{\|\boldsymbol{w}\|}\sum_{\boldsymbol{x}_i\in \mathcal{M}}y_i(\boldsymbol{w}\cdot \boldsymbol{x}_i+\boldsymbol{b})\]
+
+书中直接将 $\|\boldsymbol{w}\|$ 视作常数，直接舍去分母简化损失，此处实在令人费解，该处理方式对初学者不够友好——范数项会直接影响梯度表达式与参数迭代更新规则。我曾询问AI相关解释，得到的说法是单次迭代中 $\boldsymbol{w}$ 变化幅度小，可近似为常数；该解释存在明显逻辑漏洞：
+1. 若当前 $\|\boldsymbol{w}\|$ 数值很小，参数小幅更新也会带来相对尺度的剧烈变化；
+2. 梯度下降迭代初期远离最优超平面时，单次参数更新量完全可能很大，无法近似恒定。
+
+本质上读者容易被“最小化几何距离”的直观思路误导，两种损失对应的优化策略并不等价。
+
+前文特意强调假设空间本质是超平面而非线性函数，是因为感知机优化并不绑定距离优化方案，也不依赖线性规划框架。模型优化的核心目标仅为减少误分类样本数量，即满足 $y_i(\boldsymbol{w}\cdot\boldsymbol{x}_i+\boldsymbol{b})<0$ 的样本尽可能少，让误分类样本向超平面另一侧跨越。损失函数只需衡量误分类样本的函数间隔，分母 $\|\boldsymbol{w}\|$ 不会改变最优超平面，仅影响收敛速度。
+
+收敛速度的差异完全可通过调整学习率弥补，书中也引入学习率参与迭代更新，侧面印证无需强行将范数近似为常数。因此我并不认同“$\|\boldsymbol{w}\|$ 近似常数”这一解释，更合理的理解是：利用超平面尺度自由度，人为固定 $\|\boldsymbol{w}\|=1$ 简化计算。
+
+由此得到工程上常用的简化损失函数：
+\[L(\boldsymbol{w},\boldsymbol{b})=-\sum_{\boldsymbol{x}_i\in \mathcal{M}}y_i(\boldsymbol{w}\cdot \boldsymbol{x}_i+\boldsymbol{b})\]
+该损失求梯度形式简洁；基于几何距离的原始损失同样具备理论意义，可自行完成梯度推导练习向量与矩阵求导。
+
+\subsection*{后续补充}
+上文讨论基于机器学习三要素（模型、策略、算法）与经验风险最小化思想展开，该简化操作存在严谨数学依据，下面给出说明：
+
+对任意常数 $k>0$，参数 $(\boldsymbol{w},\boldsymbol{b})$ 与 $(k\boldsymbol{w},k\boldsymbol{b})$ 对应完全相同的分割超平面，二者给出的分类结果完全一致，即最优分割超平面不唯一对应一组 $(\boldsymbol{w},\boldsymbol{b})$：
+\[\boldsymbol{w}\cdot\boldsymbol{x}+\boldsymbol{b}=0 \iff k\boldsymbol{w}\cdot\boldsymbol{x}+k\boldsymbol{b}=0\]
+利用该尺度等价性，可施加归一约束 $\|\boldsymbol{w}\|=1$，此时几何间隔损失与简化后的函数间隔损失完全等价，这是教材舍去分母的根本数学原因。
+\end{document}
