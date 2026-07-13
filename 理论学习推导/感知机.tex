@@ -71,11 +71,11 @@ Novikoff定理：设训练数据集$T=\{(x_1,y_1),(x_2,y_2),\cdots,(x_N,y_N)\}$
 w}}^*\cdot \widehat{\boldsymbol{x}}_i)\ge \widehat{\boldsymbol{w}}^{(k-1)}\cdot \widehat{\boldsymbol{w}}^* +\eta \gamma \]
 \[\ge \cdots \ge k\eta\gamma\]
 \[\|\widehat{\boldsymbol{w}}^{(k)}\|^2=\|\widehat{\boldsymbol{w}}^{(k-1)}\|^2+2\eta y_i(\widehat{\boldsymbol{w}}^{(k-1)}\cdot \widehat{\boldsymbol{x}}_i)+\eta ^2\|\widehat{\boldsymbol{x}}_i\|^2
-\le \|\widehat{\boldsymbol{w}}^{(k-1)}\|+\eta^2R^2\]
+\le \|\widehat{\boldsymbol{w}}^{(k-1)}\|^2+\eta^2R^2\]
 \[\le \cdots \le k\eta^2R^2\]
 
 故而，由柯西不等式：
-\[k\eta\gamma \le \widehat{\boldsymbol{w}}^{(k)}\cdot \widehat{\boldsymbol{w}}^* \le \|\widehat{\boldsymbol{w}}^{(k)}\|\cdot\|\widehat{\boldsymbol{w}}^*\|\le \sqrt{k}\eta 2R
+\[k\eta\gamma \le \widehat{\boldsymbol{w}}^{(k)}\cdot \widehat{\boldsymbol{w}}^* \le \|\widehat{\boldsymbol{w}}^{(k)}\|\cdot\|\widehat{\boldsymbol{w}}^*\|\le \sqrt{k}\eta R
 \]
 
 所以：
@@ -97,6 +97,6 @@ $n_i$是第$i$个样本被分类错误的次数:
 使用向量解决问题是非常便于计算的方法，所以取系数向量$\boldsymbol{\alpha}$记录每个样本被分错误的次数。当然书中是写的求和形式，笔者主要受最近python影响了，但是思想是一致的。
 
 当然矩阵在计算上也提供了遍历，在某些软硬件架构中也会提高计算效率（基于笔者智能计算学习，可能有误）。Gram矩阵的诞生也就自然而然了。
-\[G=[\boldsymbol{x_i}\cdot\boldsymbol{x_j}]_{NxN}\]
+\[G=[\boldsymbol{x_i}\cdot\boldsymbol{x_j}]_{N\times N}\]
 
 \end{document}
