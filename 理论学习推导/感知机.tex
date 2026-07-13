@@ -46,4 +46,57 @@
 对任意常数 $k>0$，参数 $(\boldsymbol{w},\boldsymbol{b})$ 与 $(k\boldsymbol{w},k\boldsymbol{b})$ 对应完全相同的分割超平面，二者给出的分类结果完全一致，即最优分割超平面不唯一对应一组 $(\boldsymbol{w},\boldsymbol{b})$：
 \[\boldsymbol{w}\cdot\boldsymbol{x}+\boldsymbol{b}=0 \iff k\boldsymbol{w}\cdot\boldsymbol{x}+k\boldsymbol{b}=0\]
 利用该尺度等价性，可施加归一约束 $\|\boldsymbol{w}\|=1$，此时几何间隔损失与简化后的函数间隔损失完全等价，这是教材舍去分母的根本数学原因。
+
+\section{收敛性}
+为了方便，记$\widehat{\boldsymbol{w}}=(\boldsymbol{w}^T,b)^T,\widehat{\boldsymbol{x}}=(\boldsymbol{x}^T,1)^T $。
+
+Novikoff定理：设训练数据集$T=\{(x_1,y_1),(x_2,y_2),\cdots,(x_N,y_N)\}$
+是线性可分的，其中$x_i \in \mathcal{X} \subseteq \mathbf{R}^n,y_i\in \mathcal{Y}=\{-1,+1\} ,i=1,2,\cdots,N$，则
+
+(1)存在满足条件$\|\boldsymbol{\widehat{w}^*}\|=1$的超平面$\boldsymbol{\boldsymbol{\widehat{w}}^* \cdot}
+\boldsymbol{\widehat{x}}=0$将数据集完全正确分开；且存在$\gamma >0$,对所有的$i=1,2,\cdots,N$有：
+\[y_i(\boldsymbol{\widehat{w}^*}\cdot {\widehat{\boldsymbol{x}}_i})\ge\gamma>0\]
+
+(2)令$R=\max_{1\le i\le N}\|{\boldsymbol{\widehat{x}}}_i\|$,则随机梯度下降法分类次数$k$满足：
+\[k \le (\frac{R}{\gamma})^2\]
+
+证明：
+
+在第k-1次迭代，假设$(x_i,y_i)$被错误分类
+\[y_i(\widehat{\boldsymbol{w}}^{k-1}\cdot \widehat{\boldsymbol{x}}_i)\le0\]
+\[\widehat{\boldsymbol{w}}^{(k)}=\widehat{\boldsymbol{w}}^{k-1}
++\eta y_i \widehat{\boldsymbol{x}}_i\]
+\[\widehat{\boldsymbol{w}}^{(k)}\cdot \widehat{\boldsymbol{w}}^*=
+\widehat{\boldsymbol{w}}^{(k-1)}\cdot \widehat{\boldsymbol{w}}^*+\eta y_i\cdot(\widehat{\boldsymbol{
+w}}^*\cdot \widehat{\boldsymbol{x}}_i)\ge \widehat{\boldsymbol{w}}^{(k-1)}\cdot \widehat{\boldsymbol{w}}^* +\eta \gamma \]
+\[\ge \cdots \ge k\eta\gamma\]
+\[\|\widehat{\boldsymbol{w}}^{(k)}\|^2=\|\widehat{\boldsymbol{w}}^{(k-1)}\|^2+2\eta y_i(\widehat{\boldsymbol{w}}^{(k-1)}\cdot \widehat{\boldsymbol{x}}_i)+\eta ^2\|\widehat{\boldsymbol{x}}_i\|^2
+\le \|\widehat{\boldsymbol{w}}^{(k-1)}\|+\eta^2R^2\]
+\[\le \cdots \le k\eta^2R^2\]
+
+故而，由柯西不等式：
+\[k\eta\gamma \le \widehat{\boldsymbol{w}}^{(k)}\cdot \widehat{\boldsymbol{w}}^* \le \|\widehat{\boldsymbol{w}}^{(k)}\|\cdot\|\widehat{\boldsymbol{w}}^*\|\le \sqrt{k}\eta 2R
+\]
+
+所以：
+\[k \le (\frac{R}{\gamma})^2\]
+
+证明不难，但是证明是在$\|\boldsymbol{\widehat{w}^*}\|=1$这一条件下显得简单，当然这个证明是没有问题。
+笔者稍微提前看了SVM，某些道理后面才好说，当然如果你数学已经了解凸壳之类的了当我没说(笔者是在习题看到后百度了一下，了解不多)。
+
+\section{对偶}
+笔者学过最优化方法，那里面的对偶问题推导蛮复杂，所以看到这个对偶问题的时候准备大干一场，但是很快发现，很简单。不过系数变参数，至少看上去有点对偶味道了。
+
+\[\boldsymbol{w}\leftarrow w+\alpha_i y_i \boldsymbol{x}_i\]
+\[\boldsymbol{b}\leftarrow b+\alpha_i y_i\]
+$n_i$是第$i$个样本被分类错误的次数:
+\[\alpha_i=n_i \eta\]
+
+很好理解，参数随机抽取时（当然对偶方法要按一定顺序），参数的变化是由错误样本影响的，影响几次改变几次，所以对偶不一次次迭代，直接看影响次数或者说系数的影响。
+
+使用向量解决问题是非常便于计算的方法，所以取系数向量$\boldsymbol{\alpha}$记录每个样本被分错误的次数。当然书中是写的求和形式，笔者主要受最近python影响了，但是思想是一致的。
+
+当然矩阵在计算上也提供了遍历，在某些软硬件架构中也会提高计算效率（基于笔者智能计算学习，可能有误）。Gram矩阵的诞生也就自然而然了。
+\[G=[\boldsymbol{x_i}\cdot\boldsymbol{x_j}]_{NxN}\]
+
 \end{document}
