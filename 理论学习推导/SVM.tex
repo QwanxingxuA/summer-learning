@@ -1,0 +1,111 @@
+\documentclass{article}
+\title{支持向量机}
+\author{QwanxingxuA}
+\usepackage{ctex}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\begin{document}
+\maketitle
+\part{线性可分支持向量机与硬间隔最大化}
+    \section{简述}
+        线性可分支持向量机的思想在感知机那一章已经讨论了很多，笔者从策略的角度重点探讨了损失函数方法。本Part将
+        从函数间隔、几何间隔的角度严格推导感知机那一节论述的思想。考虑本文仅是学习推导，不是严格的数学专著，相关前提定义
+        在感知机文档中已经给出，本文不再重复定义，直接使用。
+    \section{函数间隔与几何间隔}
+        对于给定数据集$D$和超平面$(\boldsymbol{w},b)$，假设超平面$(\boldsymbol{w},b)$可以正确分类数据集$D$。
+
+        超平面$(\boldsymbol{w},b)$关于样本$(\boldsymbol{x}_i,y_i)$的函数间隔：
+        \[\widehat{\gamma }_i=y_i(\boldsymbol{w}\cdot \boldsymbol{x}_i+b)\]
+        
+        超平面$(\boldsymbol{w},b)$关于数据集$D$的函数间隔：
+        \[\widehat{\gamma} =\min_{i=1,2,\dots,n}\widehat{\gamma}_i\]
+
+        超平面$(\boldsymbol{w},b)$关于样本$(\boldsymbol{x}_i,y_i)$的几何间隔：
+        \[\gamma_i =\frac{y_i(\boldsymbol{w} \cdot \boldsymbol{x}_i+b)}{\|\boldsymbol{w}\|}\]
+
+        超平面$(\boldsymbol{w},b)$关于数据集$D$的几何间隔：
+        \[\gamma=\min_{i=1,2,\dots,n}\gamma_i\]
+
+        实际上，这里的两种间隔就对应于感知机中讨论的两种策略（感知机考虑的是分类错误的样本）。函数间隔会随参数等比例缩放而改变，不具备尺度不变性；几何间隔消除了参数缩放带来的影响，定义唯一。
+        从置信度的角度考虑，几何间隔衡量了分类正确的置信程度。对应感知机章节的结论：几何间隔不只要求样本越过分界超平面，还要将样本到超平面的距离纳入评价，这点后续优化问题会进一步体现。
+
+        更深入的说，两种优化目标对应不同策略，对泛化误差带来不同影响。之前论述过，不同的策略会影响泛化误差及其上界。
+        函数间隔仅保证样本分类正确；几何间隔追求更大的分离余量，模型泛化能力更强。换言之，几何间隔最小化策略对应的风险误差或者其上界在概率意义上更小。
+
+        最后要强调一点，不能直接把感知机思路完全套用到支持向量机。虽然函数间隔、几何间隔的概念一致，但感知机是以误分类样本为出发点；
+        线性可分SVM建立在所有样本分类正确的前提之上开展优化。
+
+    \section{间隔最大化}
+        基于上述讨论，可以给出基于几何间隔最大化的优化问题：
+        \begin{align*}
+            \max \quad & \gamma \\
+            s.t. \quad & \frac{y_i(\boldsymbol{w}\cdot \boldsymbol{x}_i+b)}{\|\boldsymbol{w}\|}\ge \gamma,\quad i=1,2,\dots,n
+        \end{align*}
+
+        代入几何间隔定义，问题可以转换为：
+        \begin{align*}
+            \max \quad & \frac{\widehat{\gamma}}{\|\boldsymbol{w}\|}  \\
+            s.t. \quad & y_i(\boldsymbol{w}\cdot \boldsymbol{x}_i+b)\ge \widehat{\gamma},\quad i=1,2,\dots,n
+        \end{align*}
+
+        由于超平面具备尺度不变性：若$(\boldsymbol{w},b)$是可行解，则对任意$k>0$，$(k\boldsymbol{w},kb)$对应同一超平面，函数间隔同步缩放$k$倍。因此$\widehat{\gamma}$的取值不影响该问题最优解，我们可以人为归一化取$\widehat{\gamma}=1$：
+        \begin{align*}
+            \max \quad & \frac{1}{\|\boldsymbol{w}\|}  \\
+            s.t. \quad & y_i(\boldsymbol{w}\cdot \boldsymbol{x}_i+b)\ge 1,\quad i=1,2,\dots,n
+        \end{align*}
+
+        最大化$\dfrac{1}{\|\boldsymbol{w}\|}$等价于最小化$\dfrac{1}{2}\|\boldsymbol{w}\|^2$，问题转换为：
+        \begin{align*}
+            \min \quad & \frac{1}{2}\|\boldsymbol{w}\|^2  \\
+            s.t. \quad & y_i(\boldsymbol{w}\cdot \boldsymbol{x}_i+b)\ge 1,\quad i=1,2,\dots,n
+        \end{align*}
+
+        到此便将原问题转换为典型的凸二次规划问题。书中直接假设最优解下一定存在样本使得约束取等，初次阅读容易产生疑惑：为什么最优解必然落在约束边界？
+        关键结论：目标函数$\dfrac12\|\boldsymbol{w}\|^2$是严格凸函数，可行域为凸集；严格凸优化问题的最优解必然位于可行域边界。
+        直观理解：若某组可行解全部约束严格大于1，我们可以等比例缩小$\|\boldsymbol{w}\|$，进一步优化目标，因此内部点不可能成为最优解。
+
+        下面证明几何间隔最大化问题最优解$(\boldsymbol{w}^*,b^*)$存在且唯一。
+
+        (1)存在性
+        上述问题可行域由一组线性不等式约束构成，是凸集；目标函数为二次正定函数，强制有下界。因此该凸优化问题一定存在最优解
+        $(\boldsymbol{w}^*,b^*)$。
+
+        (2)唯一性
+        假设存在两个不同最优解$(\boldsymbol{w}_1,b_1),(\boldsymbol{w}_2,b_2)$，满足$\|\boldsymbol{w}_1\|=\|\boldsymbol{w}_2\|=c$。令$\boldsymbol{w}=\dfrac{\boldsymbol{w}_1+\boldsymbol{w}_2}{2}$，由三角不等式：
+        \[c\le \|\boldsymbol{w}\| \le \frac{\|\boldsymbol{w}_1\|+\|\boldsymbol{w}_2\|}{2} =c\]
+        
+        上式取等号成立的充要条件是$\boldsymbol{w}_1,\boldsymbol{w}_2$同向共线，因此：
+        \[\boldsymbol{w}^*=\boldsymbol{w}_1=\boldsymbol{w}_2\]
+
+        设最优超平面正负间隔边界上分别存在支持向量$\boldsymbol{x}'$（正类）、$\boldsymbol{x}''$（负类），则：
+        \[b_1=-\frac{1}{2}(\boldsymbol{w}^*\cdot \boldsymbol{x}'_1+\boldsymbol{w}^*\cdot \boldsymbol{x}''_1)\]
+        \[b_2=-\frac{1}{2}(\boldsymbol{w}^*\cdot \boldsymbol{x}'_2+\boldsymbol{w}^*\cdot \boldsymbol{x}''_2)\]
+
+        于是
+        \[b_1-b_2=-\frac{1}{2}\boldsymbol{w}^*\cdot\big[(\boldsymbol{x}'_1-\boldsymbol{x}'_2)+(\boldsymbol{x}''_1-\boldsymbol{x}''_2)\big]\]
+
+        又由约束条件：
+        \[\boldsymbol{w}^*\cdot \boldsymbol{x}'_2+b_1 \ge 1 =\boldsymbol{w}^*\cdot \boldsymbol{x}'_1+b_1\]
+        \[-(\boldsymbol{w}^*\cdot \boldsymbol{x}''_2+b_1) \ge 1 =-(\boldsymbol{w}^*\cdot \boldsymbol{x}''_1+b_1)\]
+
+        推得
+        \[\boldsymbol{x}'_1=\boldsymbol{x}'_2,\quad \boldsymbol{x}''_1=\boldsymbol{x}''_2\]
+        \[b_1-b_2=0\]
+
+        综上：
+        \[(\boldsymbol{w}_1,b_1)=(\boldsymbol{w}_2,b_2)\]
+        
+        证毕！
+
+        到此便可以引入支持向量概念。如下图，边界$\boldsymbol{w}\cdot \boldsymbol{x}+b=\pm 1$构成两条间隔边界$H_1$、$H_2$，它们之间
+        的距离是$\dfrac{2}{\|\boldsymbol{w}\|}$。可以试想，若归一化不取1，仅带来参数整体缩放，超平面与间隔距离保持不变，
+        本质等价，这也印证了前面尺度不变性的结论。
+        \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.6\textwidth]{支持向量.png}
+        \caption{支持向量示意图}
+        \label{fig:svm-sv}
+        \end{figure}
+
+\end{document}
