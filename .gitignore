@@ -117,4 +117,3 @@ install_manifest.txt
 *.tar
 *.gz
 data/
-dataset/
