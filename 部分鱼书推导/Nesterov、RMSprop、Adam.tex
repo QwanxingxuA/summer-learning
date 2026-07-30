@@ -1,0 +1,32 @@
+\documentclass {article}
+\title {优化方法补充}
+\author {QwanxingxuA}
+\usepackage {ctex}
+\usepackage {amsmath}\begin {document}
+\maketitle
+鱼书说明了 SGD、Momentum、AdaGrad 方法，本文将说明 Nesterov、RMSprop、Adam
+方法。
+\section {Nesterov}
+Nesterov 相较于 Momentum 的改进是不在参数W做更新，而是前瞻一个动量单位
+，具体公式：
+\[\boldsymbol{v}\leftarrow \gamma  \boldsymbol{v} -\eta \frac{\partial L(\boldsymbol{W}+\beta \boldsymbol{v})}{\partial \boldsymbol{W}}\]
+\[\boldsymbol{W}\leftarrow \boldsymbol{W} + \boldsymbol{v}\]
+该方法是动量法的一种改进，在收敛速度、震荡缓解方面的表现更好。在代码实现方面通常简化处理，因为求解前瞻参数的梯度开销不小。
+\section {RMSprop}
+AdaGrad 方法为每个参数调节学习率大小，对于变化大的参数抑制学习率，但是此方法的问题在于
+迭代历史的叠加会导致梯度更新缓慢。RMSprop 方法相比较加了一个衰减系数，控制
+历史信息的获取量，但是没有完全避免历史叠加带来的不更新问题，公式：
+\[\boldsymbol{h} \leftarrow \rho \boldsymbol{h} + (1-\rho)\frac{\partial L}{\partial \boldsymbol{W}} \odot \frac{\partial L}{\partial \boldsymbol{W}}\]
+\[\boldsymbol{W} \leftarrow \boldsymbol{W} - \eta \frac{1}{\sqrt{\boldsymbol{h}}}\frac{\partial L}{\partial \boldsymbol{W}}\]
+\section {Adam}
+Adam 实则是对动量法、RMSprop 的结合，考虑了惯性、坡度两个维度，加速收敛速度同时自动调节每个参数：
+\[\boldsymbol{m} \leftarrow \beta_1 \boldsymbol{m}+(1-\beta_1)\frac{\partial L}{\partial \boldsymbol{W}}\]
+\[\boldsymbol{v} \leftarrow \beta_2 \boldsymbol{v}+(1-\beta_2)\frac{\partial L}{\partial \boldsymbol{W}} \odot \frac{\partial L}{\partial \boldsymbol{W}}\]
+
+偏差校正：
+\[\widehat{\boldsymbol{m}} = \frac{\boldsymbol{m}}{1-\beta_1^t}\]
+\[\widehat{\boldsymbol{v}} = \frac{\boldsymbol{v}}{1-\beta_2^t}\]
+
+参数更新：
+\[\boldsymbol{W} \leftarrow \boldsymbol{W}-\eta \frac{\boldsymbol{m}}{\sqrt{\boldsymbol{v}}+\epsilon }\]
+\end{document}
