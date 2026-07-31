@@ -107,5 +107,48 @@
         \caption{支持向量示意图}
         \label{fig:svm-sv}
         \end{figure}
+    \section{对偶算法}
+        对偶算法是最优化的一种方法，上述基于几何间隔策略得到原始最优化问题。这个问题具有很好的特性：约束函数满足
+        凸性；该问题满足强对偶性。更好的消息是KKT条件支撑了超平面的确立。
+
+        构建拉格朗如函数：
+        \[L(\boldsymbol{w},b,\boldsymbol{\alpha })=\frac{1}{2}\|\boldsymbol{w}\|^2 +\sum_{i=1}^{n}\alpha_i[(1-y_i(\boldsymbol{w}\cdot \boldsymbol{x}_i+b))]=\frac{1}{2}\|\boldsymbol{w}\|^2-\sum_{i=1}^{n}\alpha_iy_i(\boldsymbol{w}\cdot \boldsymbol{x}_i+b)+\sum_{i=1}^{n}\alpha_i \]
+        
+        其中,$\boldsymbol{\alpha}=(\alpha_1,\alpha_2,\cdots,\alpha_n)^T$是拉格朗日乘子向量。
+
+        对偶问题是极大极小化问题，先解极小化问题：
+        \[\nabla_{\boldsymbol{w}}L=\boldsymbol{w}-\sum_{i=1}^{n}\alpha_iy_i\boldsymbol{x}_i=0\]
+        \[\nabla_bL=\sum_{i=1}^{n}\alpha_iy_i=0\]
+        \[\Rightarrow \boldsymbol{w}=\sum_{i=1}^{n}\alpha_iy_i\boldsymbol{x}_i,\quad\sum_{i=1}^{n}\alpha_iy_i=0\]
+        
+        代回拉格朗日函数得到极大化问题：
+        \[\max_{\boldsymbol{\alpha}}\quad-\frac{1}{2}\sum_{i=1}^{n}\sum_{j=1}^{n}\alpha_iy_i\alpha_jy_j(\boldsymbol{x}_i\cdot \boldsymbol{x}_j)+\sum_{i=1}^{n}\alpha_i\]
+
+        将上述问题转换为标准形式：
+        \begin{align*}
+            \min_{\boldsymbol{\alpha}}\quad & \frac{1}{2}\sum_{i=1}^{n}\sum_{j=1}^{n}\alpha_iy_i\alpha_jy_j(\boldsymbol{x}_i\cdot \boldsymbol{x}_j)-\sum_{i=1}^{n}\alpha_i\\
+            s.t. \quad & \sum_{i=1}^{n}\alpha_iy_i=0 \\
+                       & \alpha_i \ge 0,\quad i=1,2,\cdots,n
+        \end{align*}
+
+        解决这个最优化问题得到最优解$\boldsymbol{\alpha}^*,\boldsymbol{w}^*,b^*$。依据最优化理论，它们分别是对偶问题和
+        原始问题的最优解。通过KKT条件可以得到原始问题的具体解：
+
+        KKT部分条件：
+        \[\boldsymbol{w}-\sum_{i=1}^{n}\alpha_iy_i\boldsymbol{x}_i=0\]
+        \[\alpha_i^*[1-y_i(\boldsymbol{w}\cdot\boldsymbol{x}_i+b)]=0,\quad i=1,2,\cdots,n\]
+        \[\boldsymbol{\alpha}_i^* \ge 0,\quad i=1,2,\cdots,n\]
+
+        一定存在$\boldsymbol{\alpha}_j^*=0$。通过反证法证明，假设不存在，那么$\alpha^*=0$，于是$\boldsymbol{w}^*=0$。代入原始问题
+        发现这不是最优解，假设不成立。
+
+        结合第二个KKt条件可以得到：
+        \[1-y_j(\boldsymbol{w}\cdot \boldsymbol{x}_j+b)=0\]
+
+        考虑到$y_i^2=1$的特性：
+        \[b=y_j-\boldsymbol{w}\cdot\boldsymbol{x_j}\]
+
+        整理出来得到超平面
+        \[(\sum_{i=1}^{n}\alpha_iy_i\boldsymbol{x}_i \quad,\quad y_j-\sum_{i=1}^{n}\alpha_iy_i(\boldsymbol{x}_i\cdot\boldsymbol{x_j}))\]
 
 \end{document}
