@@ -5,6 +5,7 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{graphicx}
+\usepackage{float}
 \begin{document}
 \maketitle
 \part{线性可分支持向量机与硬间隔最大化}
@@ -151,4 +152,75 @@
         整理出来得到超平面
         \[(\sum_{i=1}^{n}\alpha_iy_i\boldsymbol{x}_i \quad,\quad y_j-\sum_{i=1}^{n}\alpha_iy_i(\boldsymbol{x}_i\cdot\boldsymbol{x_j}))\]
 
-\end{document}
+        基于KKT条件我们发现会出现样本满足$y_i(\boldsymbol{w}^*\cdot \boldsymbol{x}_i+b^*)=1$,它们便是支持向量。
+
+\part{线性支持向量机与软间隔最大化}
+    \setcounter{section}{0}
+    \section{线性支持向量机}
+        线性支持向量机针对线性不可分数据。通常情况下可以将噪声或者特异点去除通过线性可分支持向量机解决。线性支持向量机
+        可以直接处理，这点与感知机有点类似，但一定要注意感知机是无法突破线性的，多层感知机是可以突破线性的。
+
+        线性支持向量机添加松弛变量$\xi$。松弛变量这个名称取得非常形象，在当下问题就是将线性分开的限制松弛一点，从数学
+        的角度上看是将线性可分支持向量机中的约束松弛一点，即$y_i(\boldsymbol{w}\cdot\boldsymbol{x}_i)\ge 1-\xi_i$。但松弛肯定不能过度，于是
+        加上惩罚性来限制松弛，这点与正则化是一致的。于是可以得到最优化问题：
+        
+        \begin{align*}
+            \min_{\boldsymbol{w},b,\boldsymbol{\xi}} \quad & \frac{1}{2}\|\boldsymbol{w}\|^2+C\sum_{i=1}^{n}\xi_i,\quad i=1,2,\cdots,n\\
+            s.t. \quad & y_i(\boldsymbol{w}\cdot\boldsymbol{x}_i)\ge 1-\xi_i,\quad i=1,2,\cdots,nabla\\
+                    &   \xi_i \ge 0,\quad i=1,2,\cdots,n
+        \end{align*}
+        后续同线性可分支持向量机一致，不在赘述。
+
+    \section{对偶算法}
+    构造拉格朗如函数：
+    \[L(\boldsymbol{w},b,\boldsymbol{\xi},\boldsymbol{\alpha},\boldsymbol{\mu })=\frac{1}{2}\|\boldsymbol{w}\|^2+C\sum_{i=1}^{n}\xi_i-\sum_{i=1}^{n}\alpha_iy_i(\boldsymbol{w}\cdot\boldsymbol{x}_i+b)+\sum_{i=1}^{n}\alpha_i(1-\xi_i)-\sum_{i=1}^{n}\mu_i\xi_i\]
+
+    通过解决极小化问题得到：
+
+    \begin{align*}
+        \min_{\boldsymbol{\alpha},\boldsymbol{\mu}} \quad & \frac{1}{2}\sum_{i=1}^{n}\sum_{j=1}^{n}\alpha_iy_i\alpha_jy_j(\boldsymbol{x}_i\cdot\boldsymbol{x}_j)-\sum_{i=1}^{n}\alpha_i \\
+        s.t.    \quad & \sum_{i=1}^{n}\alpha_iy_i=0\\
+        &   0\le \alpha_i \le C,\quad i=1,2,\cdots,n 
+    \end{align*}
+
+    这里的最后一个约束实际上是原本多个约束的等价形式。
+
+    通过KKt条件可以得到：
+    \[\boldsymbol{w}^*=\sum_{i=1}^{n}\alpha_iy_i\boldsymbol{x}_i\]
+    \[\alpha_i^*[1-\xi_i-y_i(\boldsymbol{w^*}\cdot\boldsymbol{x}_i+b^*)]=0,\quad i=1,2,\cdots,n\]
+    \[\mu_i^*\xi_i=0,\quad i=1,2,\cdots,n\]
+    \[C-\alpha_i-\mu_i=0,\quad i=1,2,\cdots,n\]
+
+    如果存在$0<\alpha_j< C$,则$b^*=y_j-\sum_{i=1}^{n}\alpha_iy_i(\boldsymbol{x_i}\cdot\boldsymbol{x}_j)$，注意这里要结合最后一个KKT条件。
+    
+    如果$\alpha_j=C$，若$0<\xi_i<1$,则分类正确；若$\xi_i=1$，则在超平面上；若$0<\xi_i>1$，则分类错误，
+    这实际是该问题的支持向量，可见下图。
+    
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{线性支持向量.png}
+        \caption{线性支持向量}
+    \end{figure}
+
+    \subsection*{等价形式与感知机对比分析}
+        对偶问题具有等价的形式,即合页损失函数：
+
+        \[\min_{\boldsymbol{w},b}\quad \sum_{i=1}^{n}[1-y_i(\boldsymbol{w}_i\cdot\boldsymbol{x_i}+b)]_++\lambda \|\boldsymbol{w}\|^2\]
+
+        令$[1-y_i(\boldsymbol{w}_i\cdot\boldsymbol{x_i}+b)]_+=\xi_i$得到等价形式：
+        \[\min_{\boldsymbol{w},b,\boldsymbol{\xi}}\quad \sum_{i=1}^{n}\xi_i+\lambda\|\boldsymbol{w}\|^2\]
+
+        令$\lambda=\frac{1}{2C}:$
+
+        \[\min_{\boldsymbol{w},b,\boldsymbol{\xi}}\quad \frac{1}{C}(C\sum_{i=1}^{n}\xi_i+\frac{1}{2}\|\boldsymbol{w}\|^2)\]
+
+        从策略角度看，这是将分类错误纳入经验误差。模型希望减少错误分类，有感知机的意思。实际上
+        感知机也可以写成上述形式：
+        \[\min_{\boldsymbol{w},b} \quad [y_i(\boldsymbol{w}\cdot\boldsymbol{x}_i)]_+\]
+
+        可以发现软间隔考虑了确信度，这与前文感知机与支持向量机对比分析相印证。
+        
+
+
+
+\end{document}ruan
