@@ -10,9 +10,9 @@ def im2col(input_data,filter_h,filter_w,stride=1,pad=0):
     img = np.pad(input_data,[(0,0),(0,0),(pad,pad),(pad,pad)],'constant')
     col = np.zeros(N,C,filter_h,filter_w,out_h,out_w)
 
-    for y in filter_h:
+    for y in range(filter_h):
         y_max = y + stride*out_h
-        for x in filter_w:
+        for x in range(filter_w):
             x_max =x +stride*out_w
             col[:,:,y,x,:,:] = img[:,:,y:y_max:stride,x:x_max:stride]
 
