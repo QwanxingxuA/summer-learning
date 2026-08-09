@@ -1,0 +1,93 @@
+\documentclass{article}
+\title{逻辑斯蒂回归与最大熵模型}
+\author{QwanxingxuA}
+\usepackage{ctex}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\begin{document}
+\maketitle
+\part{逻辑斯蒂回归模型}
+    \section{逻辑斯蒂分布}
+        逻辑斯蒂分布的分布函数与概率密度函数:
+        \begin{align*}
+            &F(X)=\frac{1}{1+\exp(-\frac{x-\mu }{\gamma })} \\
+            &f(x)=\frac{\exp(-\frac{x-\mu}{\gamma})}{\gamma\left[1+\exp(-\frac{x-\mu}{\gamma})\right]^2}
+        \end{align*}
+    \section{逻辑斯蒂回归模型}
+        \subsection{模型、策略}
+        逻辑斯蒂回归模型是概率判别模型，模型的定义可以不准确地说是概率分布的定义。
+
+        样本空间$T=\{(x_1,y_1),(x_2,y_2),\cdots,(x_n,y_n)\}$,输入空间$\mathcal{X}\subseteq \mathbf{R}^m$,输出空间$\mathcal{Y}\in\{0,1\}$。定义模型$P(x,y)$：
+        \[P(y=1\mid\boldsymbol{x})=\frac{\exp(\boldsymbol{w}\cdot\boldsymbol{x}+b)}{1+\exp(\boldsymbol{w}\cdot\boldsymbol{x}+b)}\]
+        \[P(y=0\mid\boldsymbol{x})=\frac{1}{1+\exp(\boldsymbol{w}\cdot\boldsymbol{x}+b)}\]
+        
+        其中，$w\in \mathbf{R}^m $。为了方便，取$\boldsymbol{w}=(w_1,w_2,\cdots,w_m,b),\boldsymbol{x}=(x_1,x_2,\cdots,x_m,1)$：
+         \[P(y=1\mid\boldsymbol{x})=\frac{\exp(\boldsymbol{w}\cdot\boldsymbol{x})}{1+\exp(\boldsymbol{w}\cdot\boldsymbol{x})}\]
+        \[P(y=0\mid\boldsymbol{x})=\frac{1}{1+\exp(\boldsymbol{w}\cdot\boldsymbol{x})}\]
+
+        书中这里直接介绍几率，身为初学者的笔者确实有点不知所措。当然李航老师很厉害，这样写对于李航老师来说是很自然的。笔者就先舍弃几率，来考虑模型定义完整过后的策略，我想这也更加自然。
+        接下来就是处理概率模型常规的极大似然法了。
+        
+        令$P(y=1\mid\boldsymbol{x})=\pi(\boldsymbol{x})$
+
+        极大似然函数：
+        \[\prod_{i=1}^{n}(\pi(\boldsymbol{x}))^{y_i}(1-\pi(x))^{1-y_i} \]
+        
+        取负对数极大似然函数作为损失函数：
+        \[L(\boldsymbol{w})=\sum_{i=1}^{n}\left[y_ilog\pi(\boldsymbol{x})+(1-y_i)log(1-\pi(\boldsymbol{x}))\right]\]
+
+        书中没有说，但是笔者认为可以对上式取均值，那会发现这不就是神经网络交叉熵损失函数的形式。实际上仔细观察$\pi(\boldsymbol{x})$的形式，
+        这不就是softmax和交叉熵损失函数的组合。
+
+        抱着上述直觉来看多维度逻辑斯蒂回归模型，输出空间$Y={c_1,c_2,\cdots,c_k}$表示具有k个类别。
+
+        定义模型：
+        \[P(y=c_k\mid\boldsymbol{x})=\frac{\exp(\boldsymbol{w}_k)\cdot\boldsymbol{x}}{1+\sum_{i=1}^{k-1}\exp(\boldsymbol{w}_k\cdot\boldsymbol{x})}\]
+
+        当然这是以$c_k$为参考的，这是因为取某一个为参考，是可以表达其他的概率（因为概率和为1），这和SMO有点类似。于是可以得到等价扩展模型：
+
+        \[P(y=c_k\mid\boldsymbol{x})=\frac{\exp(\boldsymbol{w}_k)\cdot\boldsymbol{x}}{\sum_{i=1}^{k}\exp(\boldsymbol{w}_k\cdot\boldsymbol{x})}\]
+
+        看到这个表达式又觉得上述直觉不够明显了，实际上是因为上面获取直觉的表达式是在$Y=\{0,1\}$下获取的，如果把上述扩展模型的标签换成独热编码(one—hot)会发现是一样的。
+        这里可以感受到些许神经网络深度学习与传统机器学习的联系了。
+        \subsection{几率、对数线性回归模型以及笔者看法}
+        对于概率p，定义几率：
+        \[odds=\frac{p}{1-p}\]
+
+        取对数：
+        \[logit(p)=log\frac{p}{1-p}\]
+
+        代入模型：
+        \[logit(P(y=1\mid\boldsymbol{x}))=\boldsymbol{w}\cdot\boldsymbol{x}\]
+
+        可以惊喜的发现得到了一个线性回归模型，实际上这就是对数线性模型或者说逻辑斯蒂回归模型，也就是名字的由来。
+
+        李航老师在书中没有介绍便直接纳入几率，笔者身为初学者，在这里确实有所困惑。以下谈谈的笔者的看法。
+
+        注意：笔者的看法并不一定严谨，仅仅阐述笔者的思想。
+
+        笔者认为上一节定义的概率模型就是逻辑斯蒂回归模型，与几率得到的是同样的。上述概率模型的本质是在
+        假设逻辑斯蒂分布下尽可能拟合数据，笔者觉得这就是回归模型，因为回归最重要的特征便是拟合，只不过
+        是通过概率的映射，并不是线性回归那种映射。但是本质就是逻辑斯蒂回归模型。
+
+        笔者认为几率也是一种策略，一种为了便于找到最优模型而转换模型的策略。以往在学习的时候对于策略这一块都是考虑的损失函数。但是这里也似乎是一种
+        策略，策略的思想是因为原始极大似然策略并不那么好看（当然这是直观的，实际上在神经网络里面我们知道
+        这种损失函数反向传播是很简洁方便的），于是换一种策略。策略的本质还是要最小化某一经验误差使得模型
+        最优，那看几率的形式对于分类的情况下同极大似然法是相配的，于是可以考虑几率。
+        考虑几率是可以作为策略评估的，还可以发现其他好处。几率形式是分式，这对于对数是很便利的，其次逻辑斯蒂分布
+        具有分母相同的特性，取分式可以消除分母，这意味着不用计算分母，这可以省略计算量，加速收敛，更快找到最优模型。
+
+        笔者认为基于上述的观点可以发现极大似然损失函数与均方误差损失函数是一致的。上面说了两个模型是一样的，
+        但是具体到策略上面会发现一个是极大似然法一个是均方误差拟合法，笔者直观上觉得二者本质是相同的。
+
+        笔者认为对数线性模型是理论上的，还存在其它理论上与逻辑斯蒂回归模型等价的模型，但是难以实际操作。
+        对于几率的模型发现标签是难以确定的，但是假设通过某种方法找到了对应的标签，便可以使用线性回归的
+        方法求解模型。那么如果可以通过转换得到许多等价的模型并且找到对应的标签了呢。当然就以对数线性模型来看
+        这个标签很难定义。
+        
+        最后还是要强调这只是笔者的直觉看法，并没有进行数学证明。
+
+    \part{最大熵模型}
+        
+\end{document}
