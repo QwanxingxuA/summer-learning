@@ -43,11 +43,11 @@
         抱着上述直觉来看多维度逻辑斯蒂回归模型，输出空间$Y={c_1,c_2,\cdots,c_k}$表示具有k个类别。
 
         定义模型：
-        \[P(y=c_k\mid\boldsymbol{x})=\frac{\exp(\boldsymbol{w}_k)\cdot\boldsymbol{x}}{1+\sum_{i=1}^{k-1}\exp(\boldsymbol{w}_k\cdot\boldsymbol{x})}\]
+        \[P(y=c_k\mid\boldsymbol{x})=\frac{\exp(\boldsymbol{w}_k\cdot\boldsymbol{x})}{1+\sum_{i=1}^{k-1}\exp(\boldsymbol{w}_k\cdot\boldsymbol{x})}\]
 
         当然这是以$c_k$为参考的，这是因为取某一个为参考，是可以表达其他的概率（因为概率和为1），这和SMO有点类似。于是可以得到等价扩展模型：
 
-        \[P(y=c_k\mid\boldsymbol{x})=\frac{\exp(\boldsymbol{w}_k)\cdot\boldsymbol{x}}{\sum_{i=1}^{k}\exp(\boldsymbol{w}_k\cdot\boldsymbol{x})}\]
+        \[P(y=c_k\mid\boldsymbol{x})=\frac{\exp(\boldsymbol{w}_k\cdot\boldsymbol{x})}{\sum_{i=1}^{k}\exp(\boldsymbol{w}_k\cdot\boldsymbol{x})}\]
 
         看到这个表达式又觉得上述直觉不够明显了，实际上是因为上面获取直觉的表达式是在$Y=\{0,1\}$下获取的，如果把上述扩展模型的标签换成独热编码(one—hot)会发现是一样的。
         这里可以感受到些许神经网络深度学习与传统机器学习的联系了。
@@ -88,6 +88,145 @@
         
         最后还是要强调这只是笔者的直觉看法，并没有进行数学证明。
 
-    \part{最大熵模型}
+\part{最大熵模型}
+    \section*{前记}
+        在上一部分介绍了逻辑斯蒂回归模型，在这一部分有很多的困惑和直觉想法。笔者之所以会出现这些困惑和想法，主要
+        还是因为上来就引入模型导致的，或者说引入逻辑斯蒂分布引起的。实际上这个问题也应该出现在线性回归模型，
+        但是当时的笔者刚刚进入机器学习，并没有现在这样的认知和质疑能力。现在想来，在线性回归模型曾假设高斯分布
+        下基于极大似然得到线性回归模型，上一部分不也是如此得到对数线性回归模型，可以发现他们有着共同的本质。更为
+        重要的是，笔者在线性回归模型最后提到一句“笔者不记得在哪里看到可以证明风险误差就是极大似然”，实际上
+        当时看的不仔细，现在想来应该说的是证明极大似然与最大熵一致，只是当时不知道最大熵，看到那个表达式以为是
+        风险误差。
+
+        总之，以往的介绍都是最大熵的特例。在分散的例子中总是能窥见一些直觉，所以笔者写下了很多想法，当然这些想法
+        有相当一部分是错误的，但是笔者也不打算修改了，我想未来回顾的时候看见自己的想法是很欣慰的。
+        但是正确的想法都是可以证明的，具体见下面的数学推导。
+
+    \setcounter{section}{0}
+    \section{最大熵原理}
+        最大熵原理：
+        学习概率模型时，在所有可学习概率模型时，在所有可能的概率模型(分布)中，熵最大的模型是最好的模型。通常用约束条件来确定概率模型的集合，所以，最大熵原理也可以表述为在满足约束条件的模型集合中选取熵最大的模型。
+
+        假设离散随机变量$x$的概率分布是$P(x)$,则其熵是
+        \[H(P)=-\sum_{x\in\mathcal{X}}P(x)\log P(x)\]
+
+        最大熵原理可以解释为在满足约束要求的前提下，对于未知的部分最好是"等可能的"。最大熵模型就是基于最大熵原理的模型。
+
+    \section{最大熵模型}
+        按照线性回归模型和逻辑斯蒂回归模型的思路这个地方应该直接摆出模型或者概率分布。而本部分就是解决为什么直接摆出分布的困惑，
+        或者说怎么就直接摆出模型了。其原理就是最大熵原理。
+
+        考虑样本空间$T=\{(x_1,y_1),(x_2,y_2),\cdots,(x_n,y_n)\}$。
+
+        定义基于样本的经验概率
+        \[\widetilde{P}(\boldsymbol{x},y)=\frac{N(\boldsymbol{x},y)}{n} \]
+        \[\widetilde{P}(\boldsymbol{x})=\frac{N(\boldsymbol{x})}{n} \]
+        其中，$N(\boldsymbol{x},y)$表示$(\boldsymbol{x},y)$出现的次数，即频数。
+
+        定义模型分布
+        \[P(x,y)\]
+
+        定义特征函数
+        \[f(x,y)=
+        \begin{cases}
+            1,\quad \text{x与y满足某一条件},\\
+            0,\quad \text{否则}
+        \end{cases}
+        \]
+
+        这里可以参考可式函数。
+
+        特征函数关于经验分布的期望
+        \[\mathbb{E}_{\widetilde{P}}(f)=\sum_{\boldsymbol{x},y}\widetilde{P}(\boldsymbol{x},y)f(\boldsymbol{x},y)\]
+
+        特征函数关于经验分布与模型分布的期望
+        \[\mathbb{E}_{P}(f)=\sum_{\boldsymbol{x},y}\widetilde{P}(\boldsymbol{x})P(y\mid\boldsymbol{x})f(\boldsymbol{x},y)\]
+
+        这里有点像协变量偏移，当然具体什么关系笔者未研究。我们希望模型能够符合样本数据，那么是希望两个期望是一样的:
+        \[\sum_{\boldsymbol{x},y}\widetilde{P}(\boldsymbol{x},y)f(\boldsymbol{x},y)=\sum_{\boldsymbol{x},y}\widetilde{P}(\boldsymbol{x})P(y\mid\boldsymbol{x})f(\boldsymbol{x},y)\]
+
+        以上是在构造约束，说是约束笔者觉得信息更加贴合，因为以上实际上是基于样本数据的信息获取的。
+
+        基于最大熵原理，可以定义最大熵模型：
+
+        假设满足所有约束条件的模型集合为：
+        \[\mathcal{C} \equiv \{P\mid\sum_{\boldsymbol{x},y}\widetilde{P}(\boldsymbol{x},y)f_j(\boldsymbol{x},y)=\sum_{\boldsymbol{x},y}\widetilde{P}(\boldsymbol{x})P(y\mid\boldsymbol{x})f_j(\boldsymbol{x},y),\quad j=1,2,\cdots,m\}\]
         
+        定义在条件概率$P(\boldsymbol{x},y)$上的条件熵：
+        \[H(P)=-\sum_{\boldsymbol{x},y}\widetilde{P}(\boldsymbol{x})P(y\mid\boldsymbol{x})\log P(y\mid\boldsymbol{x})\]
+
+        最大熵模型即使得上述条件熵最大的分布$P(y\mid\boldsymbol{x})$即
+        \[\arg\max_{P\in\mathcal{C}}H(P)\]
+
+        笔者注：为什么条件熵要乘以系数$\widetilde{P}(\boldsymbol{x})$暂时不考虑，可能是作为一种系数衡量熵或者说信息的重要程度吧，或者和协变量有一定关系，因为这里面牵扯的因素不是单一的，这里不用深究。
+
+    \section{最大熵模型学习}
+        可以发现，模型的选择本身就是一个学习过程。类似于逻辑斯蒂回归模型，可以理解成实际上是两个学习的连接。换言之，线性回归模型或者逻辑斯蒂回归模型并不算完整，
+        是已经完成一部分了的。
+
+        将上述模型的定义转换成最优化问题：
+        \begin{align*}
+            \min_{P}& \quad -H(P)=\sum_{\boldsymbol{x},y}\widetilde{P}(\boldsymbol{x})P(y\mid\boldsymbol{x})\log P(y\mid\boldsymbol{x})\\
+            s.t. &\quad \sum_{\boldsymbol{x},y}\widetilde{P}(\boldsymbol{x},y)f_j(\boldsymbol{x},y)=\sum_{\boldsymbol{x},y}\widetilde{P}(\boldsymbol{x})P(y\mid\boldsymbol{x})f_j(\boldsymbol{x},y),\quad j=1,2,\cdots,m\\
+            & \quad \sum_{y}P(y\mid\boldsymbol{x})=1
+        \end{align*}
+
+        构建拉格朗日函数：
+        \begin{align*}
+        L(P,\boldsymbol{w})=\sum_{\boldsymbol{x},y}\widetilde{P}(\boldsymbol{x})P(y\mid\boldsymbol{x})\log P(y\mid\boldsymbol{x})+w_0(1-\sum_{y}P(y\mid\boldsymbol{x})) \\+\sum_{j=1}^{m}w_j(\sum_{\boldsymbol{x},y}\widetilde{P}(\boldsymbol{x},y)f_j(\boldsymbol{x},y)-\sum_{\boldsymbol{x},y}\widetilde{P}(\boldsymbol{x})P(y\mid\boldsymbol{x})f_j(\boldsymbol{x},y))
+        \end{align*}
+
+        其中，$\boldsymbol{w}$是拉格朗日乘子向量。
+
+        求解其对偶问题的极小化问题：
+        \begin{align*}
+            \frac{\partial L}{\partial P}=\sum_{\boldsymbol{x},y}\widetilde{P}(x)[1+\log P(y\mid\boldsymbol{x})]-\sum_{y}w_0 \\
+            +\sum_{\boldsymbol{x},y}\widetilde{P}(x)\sum_{j=1}^{m}w_jf_j(\boldsymbol{x},y)=0
+        \end{align*}
+
+        注意到：
+        \[\sum_{y}w_0=\sum_{\boldsymbol{x},y}\widetilde{P}(\boldsymbol{x})w_0\]。
+        
+        这里用的内外求和互换，虽然不难，但是笔者认为还是有必要注意一下的。
+
+        考虑$\widetilde{P}(\boldsymbol{x})>0$的情况,这个考虑是很关键得，这也得益于获取数据的时候往往是不会为0的。于是解得：
+        \[P(y \mid \boldsymbol{x})=\frac{\exp(\sum_{j=1}^{m}w_jf_j(\boldsymbol{x},y))}{\exp(1-w_0)}\]
+
+        由于$\sum_{\boldsymbol{y}}P(y\mid\boldsymbol{x})=1$得到规范因子：
+        \[Z(\boldsymbol{x})=\sum_{y}\exp(\sum_{j=1}^{m}w_jf_j(\boldsymbol{x},y))\]
+
+        于是：
+        \[P(y\mid\boldsymbol{x})=\frac{\exp(\sum_{j=1}^{m}w_jf_j(\boldsymbol{x},y))}{Z(x)}\]
+
+        于是进入极大化上述问题便可获得最大熵模型。（这里有一个前提就是该问题满足强对偶性质。）
+
+    \subsection*{对比发现}
+        考虑上述极小化问题的表达式，取唯一特征函数
+        \[f(\boldsymbol{x},y)=\boldsymbol{x}\]
+
+        于是
+        \[P(y\mid\boldsymbol{x})=\frac{\exp(\boldsymbol{w}\cdot\boldsymbol{x})}{Z(x)}\]
+
+        这个表达式与第一部分逻辑斯蒂回归模型是一致的。笔者没有完全展开该表达式，是觉得这部分自己推导是很关键的。
+        提示：特征函数维度发生变化，对应的拉格朗日乘子维度也是要变化的；注意$\sum_{i=1}^{n}(\cdots)$与$\sum_{y}(\cdots)$的关系。
+
+        可以发现有趣的事情：将$\boldsymbol{w}$看作参数，以上极小化问题与逻辑斯蒂回归的进一步处理是一样的。可以说逻辑斯蒂回归模型
+        是最大熵模型的第二部分。
+
+        李航老师后面也是基于最大似然开始处理了，实际上这里是回到了逻辑斯蒂回归模型形成闭环。
+
+        但是！如果没有逻辑斯蒂回归模型呢，或者像我在逻辑斯蒂回归模型说的，这可能是一种简化计算的方法。
+        我们抛开这个方法呢。
+
+        结论很显然，就是处理原来的极大化问题。
+
+        第一想法是直接求导取0。会发现这里似乎给不出来解析解，但是还是可以尝试，这里面有非标量对向量的求导，还是有点复杂的。
+        因此可以通过最优化方法逼近。
+
+        当再次考虑模型、策略、算法的时候，发现以上讨论已经有了模型、算法，虽然最大熵可以说是策略了，但是考虑
+        到算法是基于极大化问题的优化，所以将极大化问题作为最终的模型。
+
+        %有事下次写，主要就是将这个策略变形得到极大似然函数，会发现极大似然函数的“极大”与"极大化问题"在名字是似乎有所联系，然后说说几个模型之间的关系，
+        %可以证明均值方差固定的时候最大熵模型是高斯分布，也说明了线性回归模型基于高斯分布假设的合理性。
+       
 \end{document}
