@@ -1,0 +1,117 @@
+\documentclass{article}
+\title{从偏差方差看待机器学习}
+\author{QwanxingxuA}
+\usepackage{ctex}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\begin{document}
+\maketitle
+    本文主要叙述笔者对机器学习的理解，这是笔者在学完线性回归模型、感知机、SVM、最大熵模型、决策树和提升方法后对李航老师在
+    概述里面提到偏差方差的又一次回想理解与总结。
+    \section{数据分布与模型}
+    从线性回归模型、逻辑斯蒂与最大熵模型、CART回归树到提升树回归树，笔者学习到了各种解决回归问题的机器学习方法，
+    但是一直有一个问题或者困惑。
+
+    那就是数据的分布。在学习上述问题的时候，都有一个大前提：针对数据集$D$，我们
+    通过某种方法将其分为训练集和测试集（当然也可以是训练集、评估集、测试集）。实际上
+    在这个前提下，数据的分布发生了变化。在以上的学习过程中通常忽略了这种变化，或者说
+    学习的就是发生了变化的数据分布。在测试集上面我们解决泛化问题，这个思路是正常的。但是
+    无论怎样，总是学习的是变化的分布。于是提出学习多个模型，取均值或者加权重的方法。
+
+    回顾机器学习的三要素：模型、策略、算法。那单看模型会发现模型$f$是基于数据的，记作
+    $\widehat{f}_D$，其中$D$是某数据集。但是策略、算法是全局的。
+
+    这就很有意思了，假设数据集
+    \[D=\bigcup_{i=1}^{n}D_i,i=1,2,\cdots,n\quad n\text{可以有限也可以无限}\]
+
+    假设以上的学习过程是基于数据集$D_i$的，那么三要素变成:
+    \[\widehat{f}_{D_i};L(\cdot);F\]
+    
+    其中$L(\cdot)$是损失函数，$F$是某种优化算法。
+
+    但是实际上完整的三要素是:
+    \[\widehat{f}_D;L(\cdot);F\]。
+
+    机器学习的大前提是假设数据独立同分布，但是上面的表达式给出了很有意思的本质：
+    我们学习的模型的分布是有变化的。
+
+    \section{损失函数与策略}
+    基于第一节，笔者发现策略损失函数是全局的。这可能也是损失函数的强大之处，如果能设计一个
+    优秀的损失函数，它能够解决数据分布变化带来的影响，那基于部分数据集训练的模型也能够适配
+    整体的数据集，那估计也不存在泛化问题了。
+
+    但是以上只是猜想，下面以均方误差为例看看机器学习三要素之一策略的伟大之处。
+
+    对于回归问题，定义真实的模型或者直观的说标签$f_D$，但是标签的说法还是具有局限性，某些不存在标签的情况
+    其真实模型依然是存在的。
+    
+    为了方便，以下推导将$f_D$省略写作$f$，有
+    \[L(f(x),\widehat{f}(x))=\mathbb{E}([(f(x)+\epsilon )-\widehat{f}(x)]^2)\]
+
+    其中$\epsilon$是扰动，满足$\mathbb{E}(\epsilon)=0,\mathrm{Var}(\epsilon)=\delta^2$。将
+    上式展开:
+    \[L=\mathbb{E}([f(x)-\widehat{f}(x)]^2)+2\mathbb{E}((f(x)-\widehat{f}(x))\epsilon)+\mathbb{E}(\epsilon ^2)\]
+
+    由独立性
+    \[2\mathbb{E}((f(x)-\widehat{f}(x))\epsilon)=0\]
+
+    又
+    \begin{align*}
+        \mathbb{E}([f(x)-\widehat{f}(x)]^2)=&\mathbb{E}(f(x)-\mathbb{E}(\widehat{f}(x))-(\widehat{f}(x)-\mathbb{E}(\widehat{f}(x)))^2\\
+        =&\mathbb{E}(f(x)-\mathbb{E}(\widehat{f}(x)))^2\\&-2\mathbb{E}[(f(x)-\mathbb{E}\widehat{f}(x))]^2+\mathbb{E}[\widehat{f}(x)-\mathbb{E}\widehat{f}(x)]^2\\
+    \end{align*}
+    
+    将第一项展开得到
+    \[\mathbb{E}(f(x)-\mathbb{E}(\widehat{f}(x)))^2=(f(x)-\widehat{f}(x))^2\]
+
+    第二项展开
+    \[-2\mathbb{E}[(f(x)-\mathbb{E}\widehat{f}(x))]^2=0\]
+
+    于是
+    \[L(f_D(x),\widehat{f}_D(x))=(f_D(x)-\mathbb{E}\widehat{f}_D(x))^2+\mathbb{E}[\widehat{f}_D(x)-\mathbb{E}\widehat{f}_D(x)]^2+\mathbb{E}(\epsilon^2)\]
+
+    第一项是真实模型与训练模型期望差的平方，记偏差$\text{Bias}$的平方；第二项是训练模型的方差，记$\text{Var}$。
+
+    为了更加直观，以某数据集为例，变为：
+    \[L(f_D(x),\widehat{f}_{D_i}(x))=(f_D(x)-\mathbb{E}\widehat{f}_{D_i}(x))^2+\mathbb{E}[\widehat{f}_{D_i}(x)-\mathbb{E}\widehat{f}_{D_i}(x)]^2+\mathbb{E}(\epsilon^2)\]
+    
+    上面表达式具有误导性，因为
+    \[f_D(x)=f_{D_i}(x),\quad x\in D_i \subseteq D\]
+    
+    这个表达式其实就是在学习线性回归等具体模型时候的损失函数。因为代入具体可得：
+    \[L(f_D(x),\widehat{f}_{D_i}(x))=(f_D(x)-\widehat{f}_{D_i}(x))^2+\mathbb{E}(\epsilon^2)\]
+
+    \section{偏差、方差与泛化}
+    前两节已经把前提表达式推导好了，接下来就是笔者以偏差方差为出发点对机器学习的看法了。
+
+    看$D_i$的原始表达式：
+    \[L(f_D(x),\widehat{f}_{D_i}(x))=(f_D(x)-\mathbb{E}\widehat{f}_{D_i}(x))^2+\mathbb{E}[\widehat{f}_{D_i}(x)-\mathbb{E}\widehat{f}_{D_i}(x)]^2+\mathbb{E}(\epsilon^2)\]
+
+    以上表达式可以论证我们基于数据集$D_i$降低损失函数这一方法的合理性。首先，上表式方差始终为0，这是显然的，因为这意味着模型完全能够泛化到
+    数据集$D_i$（当然一般我们强调的泛化能力是泛化到其它数据集，但是注意学习的模型也是可以泛化到自己本身的数据集，不过这显然是必然的罢了）；
+    其次，损失函数下降也意味着偏差下降，这是为了拟合数据，这显然符合我们的想法，无论是拟合$D_i$还是$D$。
+    \subsection*{损失函数对于具体模型$f_{D_i}$的合理性}
+    看$D$的表达式：
+    \[L(f_D(x),\widehat{f}_D(x))=(f_D(x)-\mathbb{E}\widehat{f}_D(x))^2+\mathbb{E}[\widehat{f}_D(x)-\mathbb{E}\widehat{f}_D(x)]^2+\mathbb{E}(\epsilon^2)\]
+
+    \subsection*{损失函数对于整体模型$f_D$的合理性}
+    我们依旧降低损失函数值，那么最后是偏差和方差都趋近0。偏差趋于0说明每一个模型$D_i$都能很好的拟合数据；方差为0，意味着不同模型的波动小，即两个模型差距不大，即
+    对数据的敏感度降低，其实就是泛化能力提升。显然是我们想要的。
+
+    综上，损失函数这一策略确实是严谨、合理的。
+
+    \section{总结}
+    以上是笔者的论述过程，其是通过偏差方差论述的。本文实际上重点是讨论机器学习三大要素之一策略。下面笔者将罗列出对机器学习的看法。
+
+    \begin{itemize}
+        \item 模型：机器学习的最终目标是找到针对整体数据分布的模型$f_D$；基于部分训练数据集训练的模型$f_{D_i}$的分布是变化的，泛化问题也因此引发。
+        \item 我们平常训练的模型是$f_{D_i}$，损失函数策略才是真的找到或者说靠近$f_D$，这也是为什么泛化能力会直接受损失函数影响。
+        \item 策略：损失函数下降是找到$f_D$的合理方法，这点由偏差和方差严格证明。
+        \item 算法：算法更多是服务于策略的，即服务于找到最终$f_D$。
+        \item 由上述三点，损失函数是非常强大的，其重要性不言而喻。
+    \end{itemize}
+
+    \section*{补充}
+    以上的说法是在忽略一切外部条件的前提下，实际上这里面还受样本数量、模型复杂度等等的影响。
+\end{document}
