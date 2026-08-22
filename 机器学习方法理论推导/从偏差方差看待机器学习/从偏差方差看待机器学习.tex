@@ -59,14 +59,14 @@
     又
     \begin{align*}
         \mathbb{E}([f(x)-\widehat{f}(x)]^2)=&\mathbb{E}(f(x)-\mathbb{E}(\widehat{f}(x))-(\widehat{f}(x)-\mathbb{E}(\widehat{f}(x)))^2\\
-        =&\mathbb{E}(f(x)-\mathbb{E}(\widehat{f}(x)))^2\\&-2\mathbb{E}[(f(x)-\mathbb{E}\widehat{f}(x))]^2+\mathbb{E}[\widehat{f}(x)-\mathbb{E}\widehat{f}(x)]^2\\
+        =&\mathbb{E}(f(x)-\mathbb{E}(\widehat{f}(x)))^2\\&-2\mathbb{E}[(f(x)-\mathbb{E}\widehat{f}(x))(\widehat{f}(x)-\mathbb{E}\widehat{f}(x))]+\mathbb{E}[\widehat{f}(x)-\mathbb{E}\widehat{f}(x)]^2\\
     \end{align*}
     
     将第一项展开得到
     \[\mathbb{E}(f(x)-\mathbb{E}(\widehat{f}(x)))^2=(f(x)-\widehat{f}(x))^2\]
 
     第二项展开
-    \[-2\mathbb{E}[(f(x)-\mathbb{E}\widehat{f}(x))]^2=0\]
+    \[-2\mathbb{E}[(f(x)-\mathbb{E}\widehat{f}(x))(\widehat{f}(x)-\mathbb{E}\widehat{f}(x))]=0\]
 
     于是
     \[L(f_D(x),\widehat{f}_D(x))=(f_D(x)-\mathbb{E}\widehat{f}_D(x))^2+\mathbb{E}[\widehat{f}_D(x)-\mathbb{E}\widehat{f}_D(x)]^2+\mathbb{E}(\epsilon^2)\]

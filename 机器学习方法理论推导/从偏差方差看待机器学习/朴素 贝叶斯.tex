@@ -1,0 +1,117 @@
+\documentclass{article}
+\title{Bayes}
+\author{QwanxingxuA}
+\usepackage{ctex}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\begin{document}
+\maketitle
+    \section{独立同分布}
+    朴素贝叶斯是一种生成模型，即寻找联合分布$P(x,y)$。这离不开独立同分布这一大前提。
+
+    在以往的学习过程中实际上基本忽略了这一点，笔者认为写这篇笔记最大的意义就是通过贝叶斯模型
+    巩固独立同分布这一基本前提。
+
+    提到独立同分布，必然离不开随机变量。什么是随机变量？笔者认为一切都是随机变量，如
+    输入$x$、输出$y$、输入输出联合$(x,y)$、模型$f(x)$或者$P(x,y)$、损失函数$L(y,f(x))$
+    都是随机变量。
+
+    具体的，假设样本空间$\{(x_1,y_1),(x_2,y_2),\cdots,(x_n,y_n)\}$,输入空间$\mathcal{X}\subseteq \mathcal{R}^m$,输出空间$
+    \mathcal{Y}=\{c_1,c_2,\cdots,c_k\}$。输入的某一特征$x_j \in \{a_{j1},a_{j2},\cdots,a_{jl}\}$也是随机变量。
+
+    有了随机变量，那么独立同分布到底意味这什么。实际上下面一个表达式就能说明:
+    \[P(x_{1j})=P(x_{2j})\]
+
+    强调这一点正是以往学习带来了一个直观上面的很大误区。数据集往往存在很多
+    $(x_1,y_1=c),(x_2\neq x_1,y_2=c)$即标签一致输入不一致的样本，这会显得很
+    奇怪，因为给定一个$y$，对应的$x_j$可能是五花八门的，很难想象到它们是独立同分布的。
+    出现这一原因主要还是直观与概率的差距吧。
+
+    在初次学习贝叶斯模型的时候，就因为上述误区让笔者觉得自己学会了这一模型。因为
+    基于频率直接给出对应的概率$P(y\mid \boldsymbol{x})$是很直观的，但是后来巧合之下
+    细致推导运算过后，才发现这一直观误区带了深刻的影响。笔者得承认，笔者在这种直觉与
+    概率里面想了好几个小时才走出来。
+
+    \section{生成模型与判别模型}
+    实际上第一节最后笔者所说的误区就是生成模型与判别模型或者说$P(\boldsymbol{x},y)$与$P(y\mid\boldsymbol{x})$。
+
+    为什么这么说呢？换个角度想，现在告诉样本$\boldsymbol{x}$去看$P(y)$，说$y$独立同分布是很好理解的。但是笔者在告诉$y$去看待$P(x)$的时候陷入了长久的
+    误区。而这一切主要是因为以往的学习都是判别模型。
+
+    朴素贝叶斯模型是生成模型。当然知道$P(x,y)$，能转换成判别模型也是很显然的。
+
+    \section{朴素贝叶斯}
+    朴素贝叶斯不同与其它很大模型直接给出$P(x,y)$或者$P(y\mid x)$，而是一个条件独立假设:
+    \[P(x_1,x_2,\cdots,x_m\mid y)=\prod_{j=1}^{m}P(x_j,y)\]
+
+    基于贝叶斯定理，可以得到朴素贝叶斯模型:
+    \[P(y\mid \boldsymbol{x})=\frac{P(y)\prod_{j=1}^{m}P(x_j\mid y)}{P(\boldsymbol{x})}\]
+
+    \[P(\boldsymbol{x},y)=P(y)\prod_{j=1}^{m}P(x_j\mid y)\]
+
+    使用负对数极大似然估计
+    \begin{align*}
+        L=&-\log \prod_{i=1}^{n}P(y_i)\prod_{j=1}^{m}P(x_{ij}\mid y_i)\\
+         =&-\sum_{i=1}^{n}\log P(y_i)-\sum_{i=1}^{n}\sum_{j=1}^{m}\log P(x_{ij}\mid y_i)   
+    \end{align*}
+
+    在很多情况下，基于频率直接获得先验概率$P(y)$、条件概率$P(x_{j}\mid y)$。实际上那是假设的，但是贝叶斯模型
+    是生成模型，上述是不能直接获取的，因为$P(y),P(x_{j}\mid y)$都是要学习的模型本身。
+
+    那怎么办了，实际上就是解决上述优化问题。
+    
+    关于这一点，李航老师是在习题里面要证明的。如果没有看习题的话，可能自然以为是基于频率了，因为这个表达式就是
+    这样的，那其实就和笔者一样以为自己学会了朴素贝叶斯，实际上根本没有理解朴素贝叶斯模型。
+
+    可以发现表达式的两项是没有联系的。所以先处理子问题:
+    \begin{align*}
+        \min_{P(y=c_k)} &L= -\sum_{i=1}^{n}\log P(y_i)=-\sum_{k=1}^{K}\sum_{i=1}^{n}I(y_i=c_k)\log P(y=c_k)\\
+        s.t. &\sum_{k=1}^{K}P(y=c_k)=1
+    \end{align*}
+
+    构建拉格朗日函数：
+    \[L=-\sum_{k=1}^{K}\sum_{i=1}^{n}I(y_i=c_k)\log P(y=c_k)+\lambda (\sum_{k=1}^{K}P(y=c_k)-1)\]
+
+    求导得到：
+    \[\frac{\partial L}{\partial P(y=c_k)}=-\frac{\sum_{i=1}^{n}I(y_i=c_k)}{P(y=c_k)}+\lambda=0\]
+
+    所以
+    \[\sum_{k=1}^{K}P(y=c_k)=\sum_{k=1}^{K}\frac{\sum_{i=1}^{n}I(y_i=c_k)}{\lambda}=1\]
+
+    于是
+    \[\lambda=\sum_{k=1}^{K}\sum_{i=1}^{n}I(y_i=c_k)=n\]
+    \[P(y=c_k)=\frac{\sum_{i=1}^{n}I(y_i=c_k)}{n}\]
+
+    这其实就是频率，先验概率$P(y)$具有一般性，很多模型前提假设是有道理的。但是条件概率
+    不具有一般性了，下面求解第二项的子问题：
+    \begin{align*}
+        \min_{P(x_j=a_{jl}\mid y=c_k)}&L=-\sum_{i=1}^{n}\sum_{j=1}^{m}\log P(x_{ij}\mid y_i)=-\sum_{k=1}^{K}\sum_{i=1}^{n}\sum_{j=1}^{m}\log P(x_{ij}\mid y_i=c_k) \\
+        s.t. &\sum_{l=1}^{L}P(x_{j}=a_{jl}\mid y=c_k)=1
+    \end{align*}
+
+    构造拉格朗日函数：
+    \[L=-\sum_{i=1}^{n}\sum_{j=1}^{m}\log P(x_{ij}\mid y_i)=-\sum_{k=1}^{K}\sum_{i=1}^{n}\sum_{j=1}^{m}\log P(x_{ij}\mid y_i=c_k)+\lambda(\sum_{l=1}^{L}P(x_{j}=a_{jl}\mid y=c_k)-1) \]
+
+    求导:
+    \[\frac{\partial L}{\partial P(x_j=a_{jl}\mid y=c_k)}=-\sum_{i=1}^{n}\frac{I(x_{ij}=a_{jl},y=c_k)}{P(x_{ij}=a_{jl}\mid y=c_k)}+\lambda=0\]
+
+    所以
+    \[\sum_{l=1}^{L}P(x_j=a_{jl}\mid y_i=c_k)=\sum_{l=1}^{L}\frac{\sum_{i=1}^{n}I(x_{ij}=a_{jl}\mid y_i=c_k)}{\lambda}=1\]
+
+    于是
+    \[\lambda=\sum_{i=1}^{n}I(y_i=c_k)\]
+    \[P(x_j=a_{jl}\mid y_i=c_k)=\frac{\sum_{i=1}^{n}I(x_{ij}=a_jl,y_i=c_k)}{\sum_{i=1}^{n}I(y=c_k)}\]
+
+    上面便得到模型的解了。这个过程并不容易，建议读者自己证明。
+
+    实际上这和最大熵模型是类似的，如果知道一些信息，将它加入约束会得到不一样的模型。
+
+    \section{贝叶斯估计}
+    贝叶斯估计是在朴素贝叶斯模型之上添加参数，即
+    \[P(x,y;\alpha)\]
+    \[P(y=c_k)=\frac{\sum_{i=1}^{n}I(y_i=c_k)+\alpha}{n+\alpha K}\]
+    \[P(x_j=a_{jl}\mid y_i=c_k)=\frac{\sum_{i=1}^{n}I(x_{ij}=a_jl,y_i=c_k)}{\sum_{i=1}^{n}I(y=c_k)+\alpha L}\]
+
+    先不证明，但其实从朴素贝叶斯的推导就可以知道分母$\alpha$为什么乘$K$和$L$了。
+    \end{document}
