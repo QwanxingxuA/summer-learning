@@ -1,0 +1,259 @@
+\documentclass{article}
+\title{EM算法}
+\author{QwanxingxuA}
+
+\usepackage{ctex}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\begin{document}
+\maketitle
+    EM算法由E步即期望步和M步即最大步构成，表面是一种策略$Q$，但其本质实际上算法。本文将以
+    数学推导说明算法的由来。
+
+    提示：本文基本是数学推导，解决数学优化问题，李航老师的书是有所省略的，建议读者自己完整推导一遍，笔者
+    的推导应该算很详尽的，也把笔者认为李航老师舍去的部分说了出来，可以参考。
+    \section{模型与策略}
+        EM算法是解决隐变量概率模型的算法。产生的理由和最大熵模型类似，最大熵模型难以优化，但是
+        好消息是能够找到等价的极大似然法，但是隐变量概率模型难以找到等价的算法，于是采用近似的
+        方法，EM算法因此诞生。
+
+        于是我们先看模型和策略本身。
+        
+        定义可观测数据$x$,隐变量$z$。模型是可观测数据的似然概率模型：
+        \[P(\boldsymbol{x}\mid \theta)\]
+
+        其中，$\boldsymbol{x}$是观测数据；$\theta$是模型参数。
+
+        对于这种概率模型，依照常规，使用极大对数似然法策略:
+        \[L(\theta)=\log P(\boldsymbol{x}\mid\theta)\]
+        \[P(\boldsymbol{x}\mid \theta)=\sum_{\boldsymbol{z}}P(\boldsymbol{z}\mid \theta)P(\boldsymbol{x}\mid\boldsymbol{z},\theta)\]
+
+        但是解决上述极大似然问题是很难的，我们需要某种算法解决该问题。
+
+    \section{EM算法}
+        对于难以直接求解的问题，我们往往会使用梯度下降的方法，但是此处并不容易，因为这个表达式
+        是很难直接显示的，但是笔者似乎想到了一个方法，就是变分，因为变分就是处理这种表达式并不能
+        直接表达参数$\theta$的方法。先不管变分，不能梯度下降但是可以参考梯度下降的思想，就是一步一步
+        迭代使得目标函数下降。所以可以尝试一下构建下降迭代：
+        \[L(\theta)-L(\theta^{(t)})\]
+        
+        其中,$\theta$是$\theta^{(t+1)}$,这是为了书写方便，下将$\theta^{(t)}$写作$\theta^t$。
+        \begin{align*}
+            L(\theta)-L(\theta^t)=&\log \sum_{\boldsymbol{z}}P(\boldsymbol{z}\mid \theta)P(\boldsymbol{x}\mid\boldsymbol{z},\theta)-\log P(\boldsymbol{z}\mid\theta^t)\\
+            = &\log \sum_{\boldsymbol{z}}P(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)\frac{P(\boldsymbol{z}\mid \theta)P(\boldsymbol{x}\mid\boldsymbol{z},\theta)}{P(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)}-\log P(\boldsymbol{z}\mid\theta^t)\\
+            =&\log \sum_{\boldsymbol{z}}P(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)\frac{P(\boldsymbol{z}\mid \theta)P(\boldsymbol{x}\mid\boldsymbol{z},\theta)}{P(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)P(\boldsymbol{x}\mid \theta^t)}
+        \end{align*}
+
+        注意到
+        \[\sum_{\boldsymbol{z}}P(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)=1\]
+
+        由Jensen不等式：
+        \[L(\theta)-L(\theta^t)\ge \sum_{\boldsymbol{z}}P(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)\log\frac{P(\boldsymbol{z}\mid \theta)P(\boldsymbol{x}\mid\boldsymbol{z},\theta)}{P(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)P(\boldsymbol{x}\mid \theta^t)}\]
+
+        虽然似乎不能直接取得下降多少的表达式，但是有了新的发现，就是找到了$L$的下界限：
+        \[B(\theta,\theta^t)=L(\theta^t)+\sum_{\boldsymbol{z}}P(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)\log\frac{P(\boldsymbol{z}\mid \theta)P(\boldsymbol{x}\mid\boldsymbol{z},\theta)}{P(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)P(\boldsymbol{x}\mid \theta^t)}\]
+
+        于是我们想到了一个近似方法，通过提升$B$来极大化$L$,虽然我们无法确保$L$在提升，但是这也算退而求其次的方法。将表达式无关项简化做等价优化变化：
+        \begin{align*}
+            \theta^{(t+1)}=&\arg\max_{\theta}\sum_{\boldsymbol{z}}P(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)\log P(\boldsymbol{z}\mid \theta)P(\boldsymbol{x}\mid\boldsymbol{z},\theta)\\
+            &=\arg\max_{\theta}Q(\theta,\theta^t)
+        \end{align*}
+
+        这边是EM算法表面上的策略了。但这是题外话，我们依旧是在解决原始策略的过程中。
+
+        这种方法可行吗？不能说下界提升，$L$也在提升。那只能代入尝试一下了，即说明
+        $L$单调递增。前面说了，求导不现实，这时候依旧想到构造减法:
+        
+        可以直接相减，但是有更聪明的方法，即我们既然已经有了$Q$,当然化简表达式更好处理。
+        \[P(\boldsymbol{x}\mid \theta)=\frac{P(\boldsymbol{x},\boldsymbol{z}\mid \theta)}{P(\boldsymbol{z}\mid \boldsymbol{x},\theta)}\]
+
+        这里李航老师书中也有，但是没有过多介绍，实际上这里有很大误区，很容易误导人。
+        在之前我们定义过
+        \[P(\boldsymbol{x}\mid \theta)=\sum_{\boldsymbol{z}}P(\boldsymbol{z}\mid\theta)P(\boldsymbol{x}\mid\boldsymbol{z},\theta)\]
+
+        表面上上面两个表达式不相等，因为一个求和一个没有求和。实际上是等价的，一个是全概率公式一个就是普通的条件概率变形。出现的原因是李航老师
+        都写的是向量$\boldsymbol{z}$,也应该这样写，因为这里的$\boldsymbol{z}$取标量取向量都是应该的。
+        \[L(\theta)=\log P(\boldsymbol{x},\boldsymbol{z}\mid \theta)-\log P(\boldsymbol{z}\mid \boldsymbol{x},\theta)\]
+
+        两边乘$P(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)$然后关于$\boldsymbol{z}$求和：
+        \[\sum_{\boldsymbol{z}}P(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)L(\theta)=\sum_{\boldsymbol{z}}P(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)\log P(\boldsymbol{x},\boldsymbol{z}\mid \theta)-\sum_{\boldsymbol{z}}P(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)\log P(\boldsymbol{z}\mid \boldsymbol{x},\theta)\]
+
+        依旧注意到
+        \[\sum_{\boldsymbol{z}}P(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)=1\]
+
+        且等式左边表达式与$\boldsymbol{z}$无关，只与$\theta$有关，于是
+        \[L(\theta)=\sum_{\boldsymbol{z}}P(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)\log P(\boldsymbol{x},\boldsymbol{z}\mid \theta)-\sum_{\boldsymbol{z}}P(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)\log P(\boldsymbol{z}\mid \boldsymbol{x},\theta)\]
+
+        可以惊喜的发现左侧是$Q(\theta,\theta^t)$,将右侧记作$H(\theta,\theta^t)$:
+        \[L(\theta)=Q(\theta,\theta^t)-H(\theta,\theta^t)\]
+
+        这个表达式太漂亮了，于是我们回到原本的任务，即说明单调递增。
+
+        在此之前，要说明李航老师书中另一个容易误解的地方了：$L,Q,H$都是关于$\theta$的函数，虽然我们看上去它像
+        是关于$\theta,\theta^t$的函数，实际上就推导过程来看，可以发现$\theta^t$是参数，可以随便取。
+        如果接触过共轭梯度法应该就不会有错误。弄清楚这一点了就可以得到
+        \[L(\theta)-L(\theta^t)=[Q(\theta,\theta^t)-Q(\theta^t,\theta^t)]-[H(\theta,\theta^t)-H(\theta^t,\theta^t)]\]
+
+        上面说过，$Q$是用来求极大化问题的，显然上式第一项大于0。看第二项：
+        \begin{align*}
+            H(\theta,\theta^t)-H(\theta^t,\theta^t)=&\sum_{\boldsymbol{z}}\log \frac{P(\boldsymbol{z}P(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)\mid \boldsymbol{x},\theta)}{P(\boldsymbol{z}\mid \boldsymbol{x},\theta^t)}\\
+            \le &\log \sum_{\boldsymbol{z}}P(\boldsymbol{z}\mid \boldsymbol{x},\theta^t)\frac{P(\boldsymbol{z}\mid \boldsymbol{x},\theta)}{P(\boldsymbol{z}\mid \boldsymbol{x},\theta^t)}\\
+            =&\log\sum_{\boldsymbol{z}}P(\boldsymbol{z}\mid \boldsymbol{x},\theta)\\
+            =&0
+        \end{align*}
+        综上，$L(\theta)$确实单调递增。
+
+        还差一步，就是$R$提升，$L$提升，它会不会一直提升呢？如果这样显然方法就不行。其实这就是收敛问题。
+        既然序列单调递增，那这个问题也不复杂了，只需要有界即可。
+        显然
+        \[L(\theta)=\log P(\boldsymbol{x}\mid\theta)\le 0\]
+
+        所以走到这里，我们惊喜的找到了解决原问题的办法。这就是EM算法。回顾一下，E步就是前面的求和，只不过科学家
+        喜欢用更加高级的方式表达。
+        \[Q(\theta,\theta^t)=\mathbb{E}_{P(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)}\log P(\boldsymbol{x},\boldsymbol{z}\mid \theta)\]
+
+    \section{EM算法的高斯混合模型应用}
+        第一节的推导是基于普遍问题的，EM算法本身也是因为表达式难以直接优化产生的。当遇到具体问题的时候，
+        表达式会发生变化，但其EM本质是一样的。下面就以高斯混合模型为例，具体推导EM算法。
+
+        高斯混合模型：
+        \[p(\boldsymbol{x}\mid \theta)=\sum_{j=1}^{K}\pi_jf(\boldsymbol{x}\mid\theta_j)\]
+        \[\theta_j=(\mu_j,\sigma_j^2  )\]
+        \[f_j(\boldsymbol{x}\mid\theta_j)=\frac{1}{\sqrt{2\pi}\sigma_j}\exp\left\{-\frac{(x-\mu_j)^2}{2\sigma_j^2}\right\}\]
+        \[\sum_{j=1}^{K}\pi_j=1\]
+
+        可以把该模型理解成，学习权重从而学习样本由哪个高斯模型决定。于是可以定义隐变量$z$，表示第几个模型，这
+        有点类似分类模型，为了方便，我们将其转换为独热编码向量
+        \[\boldsymbol{z}=(z_1,z_2,\cdots,z_K)\]
+
+        或者
+        \[z_j=
+        \begin{cases}
+            1,&\quad \text{样本由第j个模型决定}\\
+            0,&\quad \text{否则}
+        \end{cases}
+        \]
+
+        于是对于可观测数据$\boldsymbol{x}=(x_1,x_2,\cdots,x_n)$有隐变量$\boldsymbol{z}=(z_1,z_2,\cdots,z_n)$,其中$\boldsymbol{z_i}=(z_{i1},z_{i2},\cdots,z_{ij})$。
+        理解这几个关系是十分必要的，尤其是哪些是标量哪些是向量以及哪些是矩阵（如果你不知道笔者说的矩阵是什么，那说明你很有必要仔细梳理一下这些变量了），如果不理清楚，下面的推导是很难进行的，或者说李航老师的书你将看的糊里糊涂。
+
+        当然这里可以尝试一下极大似然法，笔者就不赘述了，直接代入EM算法。
+        
+        先求
+        \[\log P(\boldsymbol{x},\boldsymbol{z}\mid\theta)\]
+
+        需要提醒的是以下推导是概率密度，其实EM算法使用概率密度的形式是一样的;其次第一节推导是基于单一样本的，实际上多个样本也就是在最终表达式前面求和，读者自行推导。
+        \begin{align*}
+            \log p(\boldsymbol{x},\boldsymbol{z}\mid \theta)=&\log\prod_{i=1}^{n}\prod_{j=1}^{K}\left[\pi_jf(x_i\mid\theta_j)\right]^{z_{ij}}\\
+                =&\sum_{i=1}^{n}\sum_{k=1}^{K}z_{ij}\log\pi_jf(x_i\mid\theta_j)\\
+                \\
+                Q(\theta,\theta^t)=&\mathbb{E}_{p(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)}\log p(\boldsymbol{x},\boldsymbol{z}\mid \theta)\\
+                =&\sum_{j=1}^{k}\sum_{i=1}^{n}\mathbb{E}_{p(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)}(z_{ij})\log\pi_jf(x_i\mid\theta_j)
+        \end{align*}
+
+        以上推导是很显然的，但是为什么会这么轻松呢。这里涉及的技巧就是使用随机变量的方法，上面把所有都看作随机变量。
+        如果没有这样看呢，笔者最初的时候就没有这样看，后面发现自己推错了。下面写出没想到随机变量的情况。
+
+        假设不以随机变量着手，我们就不是以随机变量\[\log p(\boldsymbol{x},\boldsymbol{z}\mid\theta)\]入手了。
+        而是
+        \begin{align*}
+            \log p(\boldsymbol{x},z_j\mid\theta)=&\log\prod_{i=1}^{n}(\pi_jf(\boldsymbol{x\mid\theta_j}))^{z_{ij}}\\
+                &=\sum_{i=1}^{n}z_{ij}\log(\pi_jf(\boldsymbol{x\mid\theta_j}))
+                \\
+                Q=&\sum_{i=1}^{n}\sum_{j=1}^{K}p(z_{ij}\mid\boldsymbol{x_i},\theta^t)z_{ij}\log(\pi_jf(\boldsymbol{x\mid\theta_j}))
+        \end{align*}
+
+        于是得到
+        \begin{align*}
+            \sum_{j=1}^{K}\sum_{i=1}^{n}p(z_{ij}\mid\boldsymbol{x_i},\theta^t)z_{ij}\log(\pi_jf(\boldsymbol{x\mid\theta_j}))=\\\sum_{j=1}^{k}\sum_{i=1}^{n}\mathbb{E}_{p(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)}(z_{ij})\log\pi_jf(x_i\mid\theta_j)    
+        \end{align*}
+        
+        于是得到了李航老师书中的：
+        \[\mathbb{E}_{p(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)}(z_{ij})=p(z_{ij}\mid\boldsymbol{x_i},\theta^t)z_{ij}=p(z_{ij}=1\mid x_i,\theta^t)\]
+
+        这个等式可以说是非常关键的，李航老师直接给出来，当然直接给出来是正确的。但是如果有和笔者一样没有深入研究概率的，会不好理解。
+        
+        从随机变量的角度，$z_{ij}$是0-1分布，期望就是为1的概率，所以上式成立。
+
+        但是回顾EM算法推导过程，我们考虑
+        \[P(\boldsymbol{x}\mid \theta)=\sum_{\boldsymbol{z}}P(\boldsymbol{z}\mid \theta)P(\boldsymbol{x}\mid\boldsymbol{z},\theta)\]
+
+        经过变化推导:
+        \[Q= \sum_{\boldsymbol{z}}P(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)\log P(\boldsymbol{z}\mid \theta)P(\boldsymbol{x}\mid\boldsymbol{z},\theta)\]
+
+        然后得到
+        \[Q=\mathbb{E}_{P(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)}\log P(\boldsymbol{x},\boldsymbol{z}\mid \theta^t)\]
+
+        这里最后一步笔者只是提到一句随机变量，没想到在后来的推导给了我惨痛的教训。这一步不仅仅是等价变化。我们要求的不完全似然概率
+        $P(\boldsymbol{x}\mid\theta)$，由随机变量$P(\boldsymbol{x},\boldsymbol{z}\mid\theta)$即完全数据似然概率的期望近似解决。
+
+        即EM算法实现了从似然估计到求取期望的转变，这是多么伟大的转变。
+        
+        好了，下面继续回到本问题。利用贝叶斯公式：
+        \begin{align*}
+            \mathbb{E}_{p(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)}(z_{ij})=&p(z_{ij}=1\mid x_i,\theta^t)\\
+            =&\frac{p(z_{ij}=1,x_i\mid\theta^t)}{\sum_{j=1}^{K}p(z_{ij}=1,x_i\mid\theta^t)}\\
+            =&\frac{p(x_i\mid z_{ij}=1,\theta^t)}{\sum_{j=1}^{K}p(x_i\mid z_{ij}=1,\theta^t)}\\
+            =&\frac{\pi_jf(x_i\mid\theta_j)}{\sum_{j=1}^{K}\pi_jf(x_i\mid\theta_j)}
+        \end{align*}
+
+        将上式记作：
+        \[\gamma_{ij}=\frac{\pi_jf(x_i\mid\theta_j)}{\sum_{j=1}^{K}\pi_jf(x_i\mid\theta_j)},\quad i=1,2,\cdots,n \]
+
+        于是：
+        \[Q=\sum_{j=1}^{K}\sum_{i=1}^{n}\gamma_{ij}\log \pi_jf(x_i\mid\theta_j)\]
+
+        关于$Q$的优化问题，很简单，读者自行推导：
+        \[\mu^{(t+1)}=\frac{\sum_{i=1}^{n}\gamma_{ij}^{(t)}x_i}{\sum_{i=1}^{n}\gamma_{ij}}\]
+        \[{\sigma^2}^{(t+1)}=\frac{\sum_{i=1}^{n}\gamma_{ij}^{(t)}(x_i-\mu^{(t+1)})^2}{\sum_{i=1}^{n}\gamma_{ij}}\]
+        \[\pi_j^{(t+1)}=\frac{\sum_{i=1}^{n}\gamma_{ij}^{(t)}}{n}\]
+
+        终于也是推完了，依旧不算容易，建议读者自己推导一遍。
+
+    \section{变分EM算法}
+        回顾EM算法，解决的问题是极大似然概率$P(\boldsymbol{x}\mid\theta)$难以优化的问题。
+        于是通过全概率公式和Jesen不等式得到另个一便于求解的优化问题。
+        
+        但是，上一个解决办法是分子分母同时乘一个概率，这个技巧其实在求和什么地方都能用，只是在EM中通过相减发现了一个很好的乘子
+        \[P(\boldsymbol{z}\mid\boldsymbol{x},\theta^t)\]
+
+        这个表达式方便构造迭代。但是我们可以胆子大一点，假设存在某分布$\widetilde{P}(\boldsymbol{z})$
+        \[P(\boldsymbol{x}\mid\theta)=\sum_{\boldsymbol{z}}\widetilde{P}(\boldsymbol{z})\frac{P(\boldsymbol{x},\boldsymbol{z}\mid\theta)}{\widetilde{P}(\boldsymbol{z})}\]
+        
+        由Jensen不等式
+        \[\log P(\boldsymbol{x}\mid\theta)\ge\sum_{\boldsymbol{z}}\widetilde{P}(\boldsymbol{z})\log \frac{P(\boldsymbol{x},\boldsymbol{z}\mid\theta)}{\widetilde{P}(\boldsymbol{z})}=\mathbb{E}_{\widetilde{P}(\boldsymbol{z})}\log \frac{P(\boldsymbol{x},\boldsymbol{z}\mid\theta)}{\widetilde{P}(\boldsymbol{z})}\]
+
+        所以我们添加了一个新的参数$\widetilde{P}(\boldsymbol{z})$。
+
+
+        但是我们其实也列过另一个表达式：
+        \[P(\boldsymbol{x}\mid\theta)=\frac{P(\boldsymbol{x},\boldsymbol{z}\mid\theta)}{P(\boldsymbol{z}\mid\boldsymbol{x},\theta)}\]
+
+        我们之所以难以解决问题，是因为$P(\boldsymbol{x}\mid\theta)$和$\theta$没有直接关系，但是必须说明的一点是，
+        $P(\boldsymbol{x}\mid\theta)$是可以通过数据估计的，即可以认为这个概率我们知道。再看
+        所以只要后面分式的概率知其一就能知道另一个。但是这两个概率涉及隐变量我们很难直接表达，于是
+        纳入变分的思想，将$P(\boldsymbol{z}\mid\boldsymbol{x},\theta)$加入扰动得到$\widetilde{P}(z)$。
+
+        我们的根本任务是找到分母的表达式。显然$\widetilde{P}(\boldsymbol{z})$与$P(\boldsymbol{z}\mid\boldsymbol{x},\theta)$相差太大是不行的。
+        于是引入KL散度:
+        \begin{align*}
+            KL(\widetilde{P}(\boldsymbol{z})\Vert P(\boldsymbol{z}\mid\boldsymbol{x},\theta))=&\mathbb{E}_{\widetilde{P}(\boldsymbol{z})}[\log \widetilde{P}(\boldsymbol{z})-\log P(\boldsymbol{z}\mid\boldsymbol{x},\theta) ]\\
+            =&\mathbb{E}_{\widetilde{P}(\boldsymbol{z})}[\log \widetilde{P}(\boldsymbol{z})-\log P(\boldsymbol{x}\mid\theta)P(\boldsymbol{x},\boldsymbol{z}\mid\theta) ]\\
+            =&\log P(\boldsymbol{x}\mid\theta)-\{\mathbb{E}_{\widetilde{P}(\boldsymbol{z})}\log \widetilde{P}(\boldsymbol{z})-\mathbb{E}_{\widetilde{P}(\boldsymbol{z})}\log P(\boldsymbol{x},\boldsymbol{z}\mid\theta)\}
+        \end{align*}
+
+        故而想法是使得KL最小。但是发现了很有意思的地方。
+
+        上面我们走了两条方向，通过Jesen不等式得到了一个下界
+        \[\sum_{\boldsymbol{z}}\widetilde{P}(\boldsymbol{z})\log \frac{P(\boldsymbol{x},\boldsymbol{z}\mid\theta)}{\widetilde{P}(\boldsymbol{z})}=\mathbb{E}_{\widetilde{P}(\boldsymbol{z})}\log \frac{P(\boldsymbol{x},\boldsymbol{z}\mid\theta)}{\widetilde{P}(\boldsymbol{z})}=\mathbb{E}_{\widetilde{P}(\boldsymbol{z})}\log \widetilde{P}(\boldsymbol{z})-\mathbb{E}_{\widetilde{P}(\boldsymbol{z})}\log P(\boldsymbol{x},\boldsymbol{z}\mid\theta)\]
+
+        再看看$KL\ge0$呢。会发现具有相同的下界结论。
+
+        所以以上方法统一起来就是找到接近$P(\boldsymbol{x},\boldsymbol{z}\mid\theta)$的近似概率分布，这样简化表达式从而便于优化Q步。
+
+        这个方法完整吗？基于变分的结论,$L(\widetilde{P}(\boldsymbol{z},\theta))$是递增有界即收敛的。但是对应的似然概率
+        $P(\boldsymbol{x}\mid\theta)$不一定增加。但是这是一种近似方法，机器学习很多问题是难以找到最终解的。我们的首要目标是
+        使得目标尽量靠近，至于找到最终的最优解，不是非必须的。从某种角度来看，能找到最优解的模型往往性能更差，机器学习的泛化能力
+        也是必须要考虑的。
+\end{document}
