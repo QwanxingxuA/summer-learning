@@ -83,9 +83,6 @@
         \[Q(\lambda,\overline{ \lambda})=\sum_{\boldsymbol{z}}P_{\overline{\lambda}}(\boldsymbol{z}\mid \boldsymbol{x})\log P_\lambda(\boldsymbol{x},\boldsymbol{z})\]
         \[P_\lambda(\boldsymbol{x},\boldsymbol{z})=P(z_1)P(x_1\mid z_1)P(z_2\mid z_1)P(x_2\mid z_2)\dots P(z_t\mid z_t)P(x_t\mid z_t)\]   
         
-        以上不再赘述。但是有没有想过李航老师书中为什么不写
-        \[Q(\lambda,\overline{ \lambda})=\mathbb{E}_{P_{\overline{\lambda}}(\boldsymbol{z}\mid \boldsymbol{x})}\log P_\lambda(\boldsymbol{x},\boldsymbol{z})\]
-
         EM算法不在赘述，对每一个参数构建拉格朗日函数求导即可。
         
         预测算法不计算$\boldsymbol{z}$的具体分布，而是求取最大的路径。马尔可夫可以转换成概率图的形式，并且马尔可夫只与前一时间有关，在图上面，假设以时间为轴展开，
@@ -95,6 +92,19 @@
         动态规划算法，原理参考图论的动态规划问题。
 
         以上算法笔者只是浅浅而谈，具体看实操。
+
+    \section{EM算法与Baum-Welch预测算法的不同}
+        有没有想过李航老师书中为什么不写
+        \[Q(\lambda,\overline{ \lambda})=\mathbb{E}_{P_{\overline{\lambda}}(\boldsymbol{z}\mid \boldsymbol{x})}\log P_\lambda(\boldsymbol{x},\boldsymbol{z})\]
+
+        因为这是EM算法的通用表达式。这个表达式在Baum-Welch中需要变化一下:
+        \[Q(\lambda,\overline{ \lambda})=\mathbb{E}_{P_{\overline{\lambda}}(\boldsymbol{z}_t\mid \boldsymbol{x})}\log P_\lambda(\boldsymbol{x},\boldsymbol{z}_t)\neq\mathbb{E}_{P_{\overline{\lambda}}(\boldsymbol{z}\mid \boldsymbol{x})}\log P_\lambda(\boldsymbol{x},\boldsymbol{z})\]
+
+        不同就在于$\boldsymbol{z}$不再独立同分布，这也意味着不能再直接求解完全数据的似然概率
+        \[P_\lambda(\boldsymbol{x},\boldsymbol{z})\]
+
+        就算使用也是计算
+        \[P_\lambda(\boldsymbol{x},\boldsymbol{z}_t)\]
 
     \section{反思深度学习}
         笔者是在了解过深度学习之后仔细推导这篇笔记的。深度学习特别是自然语言部分与介绍的马尔可夫息息相关。
@@ -125,6 +135,4 @@
 
         以上只是笔者学习深度学习的一些困惑，在写这篇笔记的时候有些许想法，将它们写在了最后。当然，以上的seq2seq、LSTM、GRU等模型都是好模型，
         它们也远不是笔者上面所说的这么单一、简单，实际上还是有很大机制巧思的。
-
-        
 \end{document}
