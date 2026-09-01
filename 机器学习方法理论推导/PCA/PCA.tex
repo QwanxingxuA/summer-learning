@@ -1,0 +1,146 @@
+\documentclass{article}
+\title{PCA}
+\author{QwanxingxuA}
+
+\usepackage{ctex}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\begin{document}
+\maketitle
+    \section{PCA}
+    PCA即主成分分析，它是使用正交变换将线性相关的变量转换为线性无关的变量。在数据处理中，通常使用相关性热力图来看变量间的线性相关性，对于
+    强相关的变量我们会采取诸如合并、舍去其一等方法优化数据，但是显然此类方法是粗略的。
+
+    何为主成分？字面意思就是主要的成分，换言之就是无线性相关的数据，因为它们是主要的。
+
+    如何分析呢？理解主成分过后很简单了，正交变换过后的数据特征一定线性无关。但是这一映射过程
+    会出现信息压缩或者说损失，我们不希望信息丢失太多。怎么分析这种信息问题，在SVD里面的分解借用奇异值，
+    实际上奇异值是特征值的变形，特征值是很有用的，可以以特征值为桥梁搭建联系。这就是PCA。
+    
+    笔者在SVD那一章写道奇异值分解降维，实际上与PCA是一致的。后续笔者将详细介绍，并从SVD和PCA探索它们在降维上面到底干了什么。
+
+    定义输入$\boldsymbol{x}\in\mathbb{R}^m$,输出$\boldsymbol{y}\in\mathbb{R}^m$。定义模型
+    \[y_k=\boldsymbol{\alpha}_k^T\boldsymbol{x},\quad k=1,2,\cdots,m\]
+    \[\boldsymbol{\alpha}_i\boldsymbol{\alpha}_j=0,\quad i\neq j,i=1,2,\cdots,m\quad j=1,2,\cdots,m\]
+    \[\boldsymbol{\alpha}_k^T\boldsymbol{\alpha}_k=1\]
+    
+    \section{变量}
+    PCA的操作往往都是针对坐标轴上生硬的数据执行的，这会导致使用者浅显的数据直觉。实际上，PCA针对的对象是随机变量，所以PCA仍然
+    逃不开机器学习的概率范式。在前几章的笔记中，笔者特别强调概率范式下的模型定义：
+    \[f:\boldsymbol{x}\rightarrow \boldsymbol{y}\]
+
+    这是总体随机变量$\boldsymbol{x}$的模型。这意味着还有随机变量$\boldsymbol{x}_i$的模型
+    \[f:\boldsymbol{x}_i\rightarrow y\]
+
+    实际上这就是总体主成分分析和样本主成分分析模型，它们并不完全一样。
+
+    笔者强调一点，坐标轴依旧是随机变量，不能理解成一个数，而是坐标轴向量$\boldsymbol{x}=\boldsymbol{e}_i$。
+
+    \section{总体主成分分析}
+    既然是考虑线性相关问题，自然可以纳入成熟的数学工具。
+
+    协方差矩阵
+    \[\Sigma=\operatorname{Cov}(\boldsymbol{x})=\mathbb{E}(\boldsymbol{x}-\mathbb{E}\boldsymbol{x})(\boldsymbol{x}-\mathbb{E}\boldsymbol{x})^T\]
+
+
+    相关矩阵
+    \[\boldsymbol{R}=\left[\frac{\operatorname{Cov}(x_i,x_j)}{\sqrt{\operatorname{Var}(x_i),\operatorname{Var}(x_j)}}\right]_{m\times m}\]
+
+    采用怎样的策略呢。正交变换方式是很多的，PCA希望保留更多信息。所以按照信息保留程度选取模型。直观的来看，数据映射过后距离拉得越开，信息保留的往往越多，而拉得开可以使用
+    方差：
+    \[\operatorname{Var}(\boldsymbol{x})=\mathbb{E}(\boldsymbol{x}-\mathbb{E}\boldsymbol{x})^2=\Sigma\]
+    
+    于是算法迎刃而解了。定义$\mathcal{W}$为已经选取的模型。
+    \begin{align*}
+        \max_{\alpha_k} &\operatorname{Var}(y_k)=\operatorname{Var}(\alpha_k^T\boldsymbol{x})=\boldsymbol{\alpha}_k^T\boldsymbol{\Sigma}\boldsymbol{\alpha}_k\\
+        s.t. &\boldsymbol{\alpha}_k^T\boldsymbol{\alpha}_k=1,\\
+        &\boldsymbol{\alpha}_k\boldsymbol{\alpha}_i=0,\quad \boldsymbol{\alpha}_i\in \mathcal{W}
+    \end{align*}
+
+    解决这个优化问题比较简单。通过归纳法构造过拉格朗日函数求导即可，具体可以参考共轭梯度法。当然共轭梯度法比这个构造要复杂。但是解决了共轭构造，这类问题就不算难了。
+    笔者不再赘述，给出结论：
+    \[\boldsymbol{\Sigma}\boldsymbol{\alpha}_k-\lambda_k\boldsymbol{\alpha}_k\]
+    其中，$\lambda_k$为第$k$步的拉格朗日乘子。
+
+    可以发现，$\lambda_k$就是$\boldsymbol{\Sigma}$的特征值，对应的单位特征向量为$\boldsymbol{\alpha}_k$。
+
+    那么令$\boldsymbol{A}=[\boldsymbol{\alpha}_1\quad\boldsymbol{\alpha}_2\quad\dots\quad \boldsymbol{\alpha}_m]$，有
+    \[\boldsymbol{\Sigma}\boldsymbol{A}=\boldsymbol{A}\boldsymbol{\varLambda }\]
+    \[\boldsymbol{\varLambda }=\operatorname{diag}(\lambda_1,\lambda_2,\cdots,\lambda_k)\]
+
+    由于
+    \[\boldsymbol{A}\boldsymbol{A}^T=\boldsymbol{A}^T\boldsymbol{A}=\boldsymbol{I}\]
+
+    所以
+    \[\boldsymbol{\Sigma}=\boldsymbol{A}\boldsymbol{\varLambda }\boldsymbol{A}^T\]
+
+    所以
+    \[\operatorname{Cov}(\boldsymbol{y})=[\boldsymbol{\alpha}_k^T\boldsymbol{\Sigma}\boldsymbol{\alpha}_k]_{m\times m}=\boldsymbol{\varLambda }\]
+
+    推导了这么多，总结一下到底是什么结论。
+
+    第一，正交变换向量就是协方差矩阵的单位特征向量。
+    \[\boldsymbol{y}_k=\boldsymbol{\alpha}_k\boldsymbol{x}\]
+
+    第二，变化过后的方差矩阵（也可以说是协方差矩阵）就是由特征值组成的对角矩阵。
+    \[\operatorname{Var}(y)_k=\lambda_k\]
+    \[\lambda_1\ge\lambda_2\ge\cdots\ge\lambda_k\]
+
+    所以通过特征向量实现主成分提取，通过特征值分析信息保留程度。这样就完成了机器学习任务！
+
+    \section{PCA与SVD}
+    二者的思想方法可以说一致，只是方向不同。但是它们的根源都是半正定实对称矩阵。
+    SVD利用半正定实对称矩阵：
+    \[\boldsymbol{A}^T\boldsymbol{A}\]
+    PCA利用半正定实对称矩阵即协方差矩阵：
+    \[\operatorname{Cov}(x)=\boldsymbol{\Sigma}\]
+
+    再看正交矩阵构造。SVD构造奇异值矩阵和特征向量矩阵，然后构造$\boldsymbol{U}$,于是得到三层变换：
+    正交旋转变换、坐标轴缩放、正交旋转变换。
+    \[\boldsymbol{A}=\boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{V}^T\]
+
+    PCA,通过构造正交矩阵得到最优化问题，解问题的过程发现本质是特征值和单位向量。
+    \[\boldsymbol{\Sigma}\boldsymbol{\alpha}_k=\lambda_k\boldsymbol{\alpha}_k\]
+
+    发现没有，PCA是一个正交旋转，而SVD是分解成三个变换过程！而这根源是两种方法选择的半正定实对称矩阵的不同，
+    也可以说是分解的出发点不一样。  
+
+    PCA和SVD最大的相同点，就是是对称矩阵的对角化。正因如此，它们本质是一样的，要理解这一点，先统一它们的随机变量都是样本随机变量。
+
+    对于样本随机变量，样本方差是
+    \[\operatorname{Var}(x)=\frac{1}{n-1}\sum_{i=1}^{n}\operatorname{Var}(x_i)\]
+
+    将样本数据规范化:
+    \[x=\frac{x-\overline{x} }{\sqrt{\operatorname{Var}(x)}}\]
+
+    相关矩阵或者协方差矩阵（标准化过后是一个矩阵，为了统一说法，下说相关矩阵）。
+    \[\boldsymbol{R}=\frac{1}{n-1}\boldsymbol{X}\boldsymbol{X}^t\]
+
+    下使用SVD表达式：
+    \[\boldsymbol{A}\boldsymbol{A}^T=\boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{V}^T\boldsymbol{V}\boldsymbol{\Sigma}^T\boldsymbol{U}^T=\boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{\Sigma}^T\boldsymbol{U}^T\]
+
+    如果理解了SVD，就会发现
+    $\boldsymbol{\Sigma}_{SVD}\boldsymbol{\Sigma}_{SVD}^T=\boldsymbol{\Sigma}_{PCA}$
+
+    于是
+    $\boldsymbol{A}\boldsymbol{A}^T$就是协方差矩阵，所以对应的特征向量矩阵$\boldsymbol{U}$就是正交变换的解。
+
+    哈哈，笔者说了这么多。实际上是一直没说
+    \[\boldsymbol{A}=\boldsymbol{X}\]
+    反而证明它们是一致的。
+
+    对于信息的考量了，笔者在SVD说了，SVD的截断分解具有PCA的效果。
+
+    总结一下，标准化过后的样本PCA和SVD是一致的。但是，其余情况，并不完全一致。
+
+    \section{标准化补充}
+    实际上PCA标准化是很重要的，不进行这一步是会导致不同的结果的，这也是为什么标准化过后才与SVD一致。
+
+    首先扯一个话题，SVD和PCA谁更大，当然这个不好比较。这是一个读者问我的，他的疑惑是PCA有不标准化的推导，而标准过后与SVD一致，是不是PCA更大呢？
+
+    笔者觉得这个问题很有意思。量纲会对数据产生影响，不标准化的PCA结果可能不同。从几何角度看，因为量纲的影响会导致数据区域变形，比如极度扁平的椭圆。
+    所以人为的标准化消除这种影响。
+
+    笔者觉得硬要比较大小的话还是SVD大。PCA量纲问题还是因为它只是正交旋转，但是SVD具有坐标轴压缩变换。对于其它场景呢，笔者觉得依旧是SVD大，主要是因为SVD更加深入矩阵的几何本质。
+\end{document}
